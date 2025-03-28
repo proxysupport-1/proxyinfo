@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>代理信息解析助手</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { 
+            --primary-color: #4CAF50; 
+            --secondary-color: #2196F3; 
+            --code-color: #2c3e50;
+        }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 30px;
+            background: #f0f8ff;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+        .title {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            justify-content: center;
+        }
+        .input-section {
+            margin-bottom: 30px;
+        }
+        .input-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .help-text {
+            color: #666;
+            font-size: 0.9em;
+            margin: 10px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            line-height: 1.6;
+        }
+        input[type="text"] {
+			width: calc(100% - 4px);
+			padding: 12px;
+			border: 2px solid #ddd;
+			border-radius: 8px;
+			font-size: 16px;
+			transition: all 0.3s;
+			box-sizing: border-box; /* 新增 */
+			margin: 0 2px; /* 新增外边距补偿 */
+		}
+        input[type="text"]:focus {
+            border-color: var(--secondary-color);
+            outline: none;
+            box-shadow: 0 0 8px rgba(33,150,243,0.2);
+        }
+        .output-section {
+            margin-top: 25px;
+        }
+        .output-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .output-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary-color);
+        }
+        .output-label {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .output-value {
+            color: #333;
+            font-weight: 500;
+            font-size: 1.1em;
+            word-break: break-all;
+        }
+        .error-message {
+            color: #ff4444;
+            padding: 10px;
+            background: #ffecec;
+            border-radius: 6px;
+            margin-top: 10px;
+            display: none;
+        }
+        .example-section {
+            margin-top: 25px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .example-title {
+            color: #666;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .example-item {
+            color: #444;
+            font-size: 0.9em;
+            margin: 8px 0;
+            padding-left: 10px;
+            border-left: 3px solid #ddd;
+        }
+        .formatted-box {
+            grid-column: 1 / -1;
+            position: relative;
+            margin-top: 10px;
+        }
+        .formatted-content {
+            font-family: 'Courier New', monospace;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            color: var(--code-color);
+            white-space: pre-wrap;
+            word-break: break-all;
+            position: relative;
+            padding-right: 120px;
+        }
+        .copy-btn {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .copy-btn:hover {
+            background: #1976D2;
+        }
+        .copy-btn.copied {
+            background: var(--primary-color);
+            pointer-events: none;
+        }
+        #formatted-text, #curl-command {
+            margin: 0;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">
+            <i class="fas fa-tools"></i>
+            代理信息解析助手
+        </h1>
+
+        <div class="input-section">
+            <div class="input-header">
+                <i class="fas fa-keyboard"></i>
+                <h3>在这里粘贴代理信息</h3>
+            </div>
+            
+            <input type="text" id="proxy-input" 
+                   placeholder="例如：username:password@127.0.0.1:8080"
+                   oninput="parseProxy(this.value)">
+
+            <div class="help-text">
+                <i class="fas fa-info-circle"></i>
+                支持多种格式自动识别，输入时自动解析。常见格式示例见下方。
+            </div>
+
+            <div class="error-message" id="error-msg">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>无法识别的格式，请检查输入是否正确</span>
+            </div>
+        </div>
+
+        <div class="output-section">
+            <div class="input-header">
+                <i class="fas fa-file-signature"></i>
+                <h3>解析结果</h3>
+            </div>
+            
+            <div class="output-grid">
+                <div class="output-item">
+                    <div class="output-label">
+                        <i class="fas fa-network-wired"></i>
+                        协议类型
+                    </div>
+                    <div class="output-value" id="protocol">-</div>
+                </div>
+                <div class="output-item">
+                    <div class="output-label">
+                        <i class="fas fa-server"></i>
+                        服务器地址
+                    </div>
+                    <div class="output-value" id="host">-</div>
+                </div>
+                <div class="output-item">
+                    <div class="output-label">
+                        <i class="fas fa-plug"></i>
+                        端口号
+                    </div>
+                    <div class="output-value" id="port">-</div>
+                </div>
+                <div class="output-item">
+                    <div class="output-label">
+                        <i class="fas fa-user"></i>
+                        用户名
+                    </div>
+                    <div class="output-value" id="username">-</div>
+                </div>
+                <div class="output-item">
+                    <div class="output-label">
+                        <i class="fas fa-lock"></i>
+                        密码
+                    </div>
+                    <div class="output-value" id="password">-</div>
+                </div>
+                
+                <div class="formatted-box">
+                    <div class="formatted-content">
+                        <div id="formatted-text">-</div>
+                        <button class="copy-btn" onclick="copyResult(event)">
+                            <i class="fas fa-copy"></i>
+                            <span>复制结果</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="formatted-box">
+                    <div class="formatted-content">
+                        <div id="curl-command">-</div>
+                        <button class="copy-btn" onclick="copyCurl(event)">
+                            <i class="fas fa-copy"></i>
+                            <span>复制CURL</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="example-section">
+            <div class="example-title">
+                <i class="fas fa-lightbulb"></i>
+                支持的格式示例：
+            </div>
+            <div class="example-item">user:pass@127.0.0.1:8080</div>
+            <div class="example-item">socks5://127.0.0.1:8080:user:pass</div>
+            <div class="example-item">127.0.0.1:8080@user:pass</div>
+            <div class="example-item">127.0.0.1:8080:user:pass</div>
+        </div>
+    </div>
+
+    <script>
+        function parseProxy(input) {
+            const outputs = {
+                protocol: '未知协议',
+                host: '-',
+                port: '-',
+                username: '-',
+                password: '-'
+            };
+
+            const errorMsg = document.getElementById('error-msg');
+            input = input.trim().toLowerCase();
+            let matched = false;
+
+            const patterns = [
+                {
+                    regex: /^(.*?):\/\/(.*?):(\d+):(.*?):(.*)$/,
+                    handler: (match) => {
+                        outputs.protocol = match[1];
+                        outputs.host = match[2];
+                        outputs.port = match[3];
+                        outputs.username = match[4];
+                        outputs.password = match[5];
+                    }
+                },
+                {
+                    regex: /^(.*?):(\d+):(.*?):(.*)$/,
+                    handler: (match) => {
+                        outputs.host = match[1];
+                        outputs.port = match[2];
+                        outputs.username = match[3];
+                        outputs.password = match[4];
+                    }
+                },
+                {
+                    regex: /^(.*?):(.*?)@(.*?):(\d+)$/,
+                    handler: (match) => {
+                        outputs.username = match[1];
+                        outputs.password = match[2];
+                        outputs.host = match[3];
+                        outputs.port = match[4];
+                    }
+                },
+                {
+                    regex: /^(.*?):(.*?):(.*?):(\d+)$/,
+                    handler: (match) => {
+                        outputs.username = match[1];
+                        outputs.password = match[2];
+                        outputs.host = match[3];
+                        outputs.port = match[4];
+                    }
+                },
+                {
+                    regex: /^(.*?):(\d+)@(.*?):(.*)$/,
+                    handler: (match) => {
+                        outputs.host = match[1];
+                        outputs.port = match[2];
+                        outputs.username = match[3];
+                        outputs.password = match[4];
+                    }
+                }
+            ];
+
+            for (let pattern of patterns) {
+                const match = input.match(pattern.regex);
+                if (match) {
+                    pattern.handler(match);
+                    matched = true;
+                    break;
+                }
+            }
+
+            // 生成CURL命令
+            let curlCommand = '';
+            if (outputs.host !== '-' && outputs.port !== '-') {
+                const protocol = outputs.protocol !== '未知协议' ? outputs.protocol : 'http';
+                const auth = outputs.username !== '-' && outputs.password !== '-' 
+                            ? `${outputs.username}:${outputs.password}@` 
+                            : '';
+                curlCommand = `curl -x "${protocol}://${auth}${outputs.host}:${outputs.port}" http://www.ip-api.com/json`;
+            } else {
+                curlCommand = '请正确输入代理信息以生成测试命令';
+            }
+
+            const formatText = `协议: ${outputs.protocol}\n主机: ${outputs.host}\n端口: ${outputs.port}\n用户: ${outputs.username}\n密码: ${outputs.password}`;
+
+            document.getElementById('protocol').textContent = outputs.protocol;
+            document.getElementById('host').textContent = outputs.host;
+            document.getElementById('port').textContent = outputs.port;
+            document.getElementById('username').textContent = outputs.username;
+            document.getElementById('password').textContent = outputs.password;
+            document.getElementById('formatted-text').textContent = formatText;
+            document.getElementById('curl-command').textContent = curlCommand;
+
+            if (input.length > 0 && !matched) {
+                errorMsg.style.display = 'flex';
+                document.querySelectorAll('.output-value').forEach(el => {
+                    el.style.color = '#ff4444';
+                });
+            } else {
+                errorMsg.style.display = 'none';
+                document.querySelectorAll('.output-value').forEach(el => {
+                    el.style.color = '#333';
+                });
+            }
+        }
+
+        function handleCopy(btn, text) {
+            const originalHTML = btn.innerHTML;
+            navigator.clipboard.writeText(text).then(() => {
+                btn.innerHTML = '<i class="fas fa-check"></i> 已复制！';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.innerHTML = originalHTML;
+                    btn.classList.remove('copied');
+                }, 2000);
+            }).catch(err => {
+                console.error('复制失败:', err);
+            });
+        }
+
+        function copyResult(event) {
+            const btn = event.currentTarget;
+            const text = document.getElementById('formatted-text').textContent;
+            handleCopy(btn, text);
+        }
+
+        function copyCurl(event) {
+            const btn = event.currentTarget;
+            const text = document.getElementById('curl-command').textContent;
+            handleCopy(btn, text);
+        }
+    </script>
+</body>
+</html>
