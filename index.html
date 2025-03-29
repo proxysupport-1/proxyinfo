@@ -164,6 +164,75 @@
             margin: 0;
             line-height: 1.5;
         }
+        .ad-container {
+            position: relative;
+            margin-top: 30px;
+            padding: 25px 20px;
+            background: #ffffff;
+            border-radius: 12px;
+            border: 2px solid #239dfa;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        .ad-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(35, 157, 250, 0.2);
+        }
+        .ad-corner {
+            position: absolute;
+            top: 10px;
+            right: -28px;
+            width: 90px;
+            height: 24px;
+            background: #239dfa;
+            color: white;
+            text-align: center;
+            line-height: 24px;
+            transform: rotate(45deg);
+            font-size: 12px;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            font-family: Arial, sans-serif;
+            letter-spacing: 1px;
+        }
+        .ad-content {
+            text-align: center;
+            line-height: 1.6;
+            position: relative;
+            z-index: 1;
+            padding: 5px;
+        }
+        .ad-title {
+            color: #239dfa;
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+        }
+        .ad-desc {
+            color: #666;
+            font-size: 0.95em;
+            margin-bottom: 15px;
+            padding: 0 15px;
+        }
+        .ad-button {
+            display: inline-block;
+            background: #239dfa;
+            color: white;
+            padding: 10px 25px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        .ad-button:hover {
+            background: white;
+            color: #239dfa;
+            border-color: #239dfa;
+            transform: translateY(-2px);
+        }
     </style>
 </head>
 <body>
@@ -258,6 +327,7 @@
                 </div>
             </div>
         </div>
+		
 
         <div class="example-section">
             <div class="example-title">
@@ -269,6 +339,16 @@
             <div class="example-item">127.0.0.1:8080@user:pass</div>
             <div class="example-item">127.0.0.1:8080:user:pass</div>
         </div>
+		
+		<div class="ad-container">
+			<div class="ad-corner">推荐</div>
+			<div class="ad-content">
+				<div class="ad-title">稳定可靠的全球动静态代理IP</div>
+				<p class="ad-desc">使用IPFoxy为您提供的长期稳定可靠的代理IP服务<br>让您的线上业务获得无限规模化增长的机会</p>
+				<a href="https://referral.ipfoxy.com/Support" class="ad-button">开始免费试用</a>
+			</div>
+		</div>
+		
     </div>
 
     <script>
