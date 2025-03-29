@@ -207,14 +207,19 @@
             padding: 5px;
         }
         .referral-title {
-            color: #239dfa;
-            font-size: 1.2em;
+            font-size: 1.5em;
             font-weight: bold;
             margin-bottom: 8px;
             letter-spacing: 1px;
         }
+		.referral-title-black {
+			color: #19304a
+		}
+		.referral-title-blue {
+			color: #239dfa
+		}
         .referral-desc {
-            color: #666;
+            color: #7f7f7f;
             font-size: 0.95em;
             margin-bottom: 15px;
             padding: 0 15px;
@@ -308,8 +313,14 @@
                     </div>
                     <div class="output-value" id="password">-</div>
                 </div>
+				
+
                 
                 <div class="formatted-box">
+					<div class="input-header">
+						<i class="fa-solid fa-paste"></i>
+						<h3>文本复制</h3>
+					</div>
                     <div class="formatted-content">
                         <div id="formatted-text">-</div>
                         <button class="copy-btn" onclick="copyResult(event)">
@@ -346,9 +357,13 @@
 		<div class="referral-container">
 			<div class="referral-corner">推荐</div>
 			<div class="referral-content">
-				<div class="referral-title">稳定可靠的全球动静态代理IP</div>
+			<div class="referral-title">
+				<span class="referral-title-black">稳定可靠的全球</span><span class="referral-title-blue">动静态代理IP</span>
+			</div>
 				<p class="referral-desc">使用IPFoxy为您提供的长期稳定可靠的代理IP服务<br>让您的线上业务获得无限规模化增长的机会</p>
-				<a href="https://referral.ipfoxy.com/Support" class="referral-button">开始免费试用</a>
+				<a href="https://referral.ipfoxy.com/Support" class="referral-button">开始免费试用
+					<i class="fa-solid fa-arrow-right"></i>
+				</a>
 			</div>
 		</div>
 		
