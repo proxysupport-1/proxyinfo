@@ -39,7 +39,8 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
+			position: relative;
         }
         .help-text {
             color: #666;
@@ -57,8 +58,8 @@
 			border-radius: 8px;
 			font-size: 16px;
 			transition: all 0.3s;
-			box-sizing: border-box; /* 新增 */
-			margin: 0 2px; /* 新增外边距补偿 */
+			box-sizing: border-box;
+			margin: 0 2px;
 		}
         input[type="text"]:focus {
             border-color: var(--secondary-color);
@@ -164,6 +165,34 @@
             margin: 0;
             line-height: 1.5;
         }
+		.help-icon {
+            cursor: help;
+            color: #666;
+            font-size: 0.8em;
+            position: relative;
+            margin-left: 5px;
+			transition: all 0.2s;
+        }
+		.help-icon:hover {
+            color: var(--secondary-color);
+        }
+        .help-icon:hover::after {
+            content: "CURL指令的使用方式：\A────────────────\A *Windows用户：按键盘Win+R键，输入CMD回车，在命令行粘贴指令\A *苹果Mac用户：在启动台找到“终端”，在终端粘贴指令\A────────────────\A 指令示例：curl -x \"协议://用户:密码@主机:端口\" URL";
+            white-space: pre-wrap;
+            position: absolute;
+			background: rgba(0,0,0,0.8);
+			color: #fff;
+			backdrop-filter: blur(2px);
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-size: 14px;
+            width: 480px;
+            left: 25px;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            line-height: 1.6;
+        }
         .referral-container {
             position: relative;
             margin-top: 30px;
@@ -262,7 +291,7 @@
 
             <div class="help-text">
                 <i class="fas fa-info-circle"></i>
-                支持多种格式自动识别，输入时自动解析。常见格式示例见下方。
+                支持多种格式自动识别，输入时自动解析。常见格式示例见页面最下方。
             </div>
 
             <div class="error-message" id="error-msg">
@@ -330,15 +359,20 @@
                     </div>
                 </div>
 
-                <div class="formatted-box">
-                    <div class="formatted-content">
-                        <div id="curl-command">-</div>
-                        <button class="copy-btn" onclick="copyCurl(event)">
-                            <i class="fas fa-copy"></i>
-                            <span>复制CURL</span>
-                        </button>
-                    </div>
-                </div>
+				<div class="formatted-box">
+					<div class="input-header">
+						<i class="fa-solid fa-paste"></i>
+						<h3>CURL指令</h3>
+						<i class="fas fa-question-circle help-icon"></i>
+					</div>
+					<div class="formatted-content">
+						<div id="curl-command">-</div>
+						<button class="copy-btn" onclick="copyCurl(event)">
+							<i class="fas fa-copy"></i>
+							<span>复制CURL</span>
+						</button>
+					</div>
+				</div>
             </div>
         </div>
 		
