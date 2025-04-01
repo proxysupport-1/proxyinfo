@@ -404,111 +404,137 @@
     </div>
 
     <script>
-		function parseProxy(input) {
-			const outputs = {
-				protocol: '未知协议',
-				host: '-',
-				port: '-',
-				username: '-',
-				password: '-'
-			};
+        function parseProxy(input) {
+            const outputs = {
+                protocol: '未知协议',
+                host: '-',
+                port: '-',
+                username: '-',
+                password: '-'
+            };
 
-			const errorMsg = document.getElementById('error-msg');
-			input = input.trim(); // 去掉了 .toLowerCase()
-			let matched = false;
+            const errorMsg = document.getElementById('error-msg');
+            input = input.trim();
+            let matched = false;
 
-			const patterns = [
-				{
-					regex: /^(.*?):\/\/(.*?):(\d+):(.*?):(.*)$/,
-					handler: (match) => {
-						outputs.protocol = match[1];
-						outputs.host = match[2];
-						outputs.port = match[3];
-						outputs.username = match[4];
-						outputs.password = match[5];
-					}
-				},
-				{
-					regex: /^(.*?):(\d+):(.*?):(.*)$/,
-					handler: (match) => {
-						outputs.host = match[1];
-						outputs.port = match[2];
-						outputs.username = match[3];
-						outputs.password = match[4];
-					}
-				},
-				{
-					regex: /^(.*?):(.*?)@(.*?):(\d+)$/,
-					handler: (match) => {
-						outputs.username = match[1];
-						outputs.password = match[2];
-						outputs.host = match[3];
-						outputs.port = match[4];
-					}
-				},
-				{
-					regex: /^(.*?):(.*?):(.*?):(\d+)$/,
-					handler: (match) => {
-						outputs.username = match[1];
-						outputs.password = match[2];
-						outputs.host = match[3];
-						outputs.port = match[4];
-					}
-				},
-				{
-					regex: /^(.*?):(\d+)@(.*?):(.*)$/,
-					handler: (match) => {
-						outputs.host = match[1];
-						outputs.port = match[2];
-						outputs.username = match[3];
-						outputs.password = match[4];
-					}
-				}
-			];
+            const patterns = [
+                {
+                    regex: /^(.*?):\/\/(.*?):(\d+):(.*?):(.*)$/,
+                    handler: (match) => {
+                        outputs.protocol = match[1];
+                        outputs.host = match[2];
+                        outputs.port = match[3];
+                        outputs.username = match[4];
+                        outputs.password = match[5];
+                    }
+                },
+                {
+                    regex: /^(.*?):(\d+):(.*?):(.*)$/,
+                    handler: (match) => {
+                        outputs.host = match[1];
+                        outputs.port = match[2];
+                        outputs.username = match[3];
+                        outputs.password = match[4];
+                    }
+                },
+                {
+                    regex: /^(.*?):(.*?)@(.*?):(\d+)$/,
+                    handler: (match) => {
+                        outputs.username = match[1];
+                        outputs.password = match[2];
+                        outputs.host = match[3];
+                        outputs.port = match[4];
+                    }
+                },
+                {
+                    regex: /^(.*?):(.*?):(.*?):(\d+)$/,
+                    handler: (match) => {
+                        outputs.username = match[1];
+                        outputs.password = match[2];
+                        outputs.host = match[3];
+                        outputs.port = match[4];
+                    }
+                },
+                {
+                    regex: /^(.*?):(\d+)@(.*?):(.*)$/,
+                    handler: (match) => {
+                        outputs.host = match[1];
+                        outputs.port = match[2];
+                        outputs.username = match[3];
+                        outputs.password = match[4];
+                    }
+                }
+            ];
 
-			for (let pattern of patterns) {
-				const match = input.match(pattern.regex);
-				if (match) {
-					pattern.handler(match);
-					matched = true;
-					break;
-				}
-			}
+            for (let pattern of patterns) {
+                const match = input.match(pattern.regex);
+                if (match) {
+                    pattern.handler(match);
+                    matched = true;
+                    break;
+                }
+            }
 
-			// 生成CURL命令
-			let curlCommand = '';
-			if (outputs.host !== '-' && outputs.port !== '-') {
-				const protocol = outputs.protocol !== '未知协议' ? outputs.protocol : 'http';
-				const auth = outputs.username !== '-' && outputs.password !== '-' 
-							? `${outputs.username}:${outputs.password}@` 
-							: '';
-				curlCommand = `curl -x "${protocol}://${auth}${outputs.host}:${outputs.port}" http://www.ip-api.com/json`;
-			} else {
-				curlCommand = '请正确输入代理信息以生成测试命令';
-			}
+            // 生成CURL命令
+            let curlCommand = '';
+            if (outputs.host !== '-' && outputs.port !== '-') {
+                const protocol = outputs.protocol !== '未知协议' ? outputs.protocol : 'http';
+                const auth = outputs.username !== '-' && outputs.password !== '-' 
+                            ? `${outputs.username}:${outputs.password}@` 
+                            : '';
+                curlCommand = `curl -x "${protocol}://${auth}${outputs.host}:${outputs.port}" http://www.ip-api.com/json`;
+            } else {
+                curlCommand = '请正确输入代理信息以生成测试命令';
+            }
 
-			const formatText = `协议: ${outputs.protocol}\n主机: ${outputs.host}\n端口: ${outputs.port}\n用户: ${outputs.username}\n密码: ${outputs.password}`;
+            const formatText = `协议: ${outputs.protocol}\n主机: ${outputs.host}\n端口: ${outputs.port}\n用户: ${outputs.username}\n密码: ${outputs.password}`;
 
-			document.getElementById('protocol').textContent = outputs.protocol;
-			document.getElementById('host').textContent = outputs.host;
-			document.getElementById('port').textContent = outputs.port;
-			document.getElementById('username').textContent = outputs.username;
-			document.getElementById('password').textContent = outputs.password;
-			document.getElementById('formatted-text').textContent = formatText;
-			document.getElementById('curl-command').textContent = curlCommand;
+            document.getElementById('protocol').textContent = outputs.protocol;
+            document.getElementById('host').textContent = outputs.host;
+            document.getElementById('port').textContent = outputs.port;
+            document.getElementById('username').textContent = outputs.username;
+            document.getElementById('password').textContent = outputs.password;
+            document.getElementById('formatted-text').textContent = formatText;
+            document.getElementById('curl-command').textContent = curlCommand;
 
-			if (input.length > 0 && !matched) {
-				errorMsg.style.display = 'flex';
-				document.querySelectorAll('.output-value').forEach(el => {
-					el.style.color = '#ff4444';
-				});
-			} else {
-				errorMsg.style.display = 'none';
-				document.querySelectorAll('.output-value').forEach(el => {
-					el.style.color = '#333';
-				});
-			}
-		}
+            if (input.length > 0 && !matched) {
+                errorMsg.style.display = 'flex';
+                document.querySelectorAll('.output-value').forEach(el => {
+                    el.style.color = '#ff4444';
+                });
+            } else {
+                errorMsg.style.display = 'none';
+                document.querySelectorAll('.output-value').forEach(el => {
+                    el.style.color = '#333';
+                });
+            }
+        }
+
+        function handleCopy(btn, text) {
+            const originalHTML = btn.innerHTML;
+            navigator.clipboard.writeText(text).then(() => {
+                btn.innerHTML = '<i class="fas fa-check"></i> 已复制！';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.innerHTML = originalHTML;
+                    btn.classList.remove('copied');
+                }, 2000);
+            }).catch(err => {
+                console.error('复制失败:', err);
+            });
+        }
+
+        function copyResult(event) {
+            const btn = event.currentTarget;
+            const text = document.getElementById('formatted-text').textContent;
+            handleCopy(btn, text);
+        }
+
+        function copyCurl(event) {
+            const btn = event.currentTarget;
+            const text = document.getElementById('curl-command').textContent;
+            handleCopy(btn, text);
+        }
     </script>
 </body>
 </html>
