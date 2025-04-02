@@ -394,8 +394,8 @@
 			<div class="referral-title">
 				<span class="referral-title-black">稳定可靠的全球</span><span class="referral-title-blue">动静态代理IP</span>
 			</div>
-				<p class="referral-desc">使用IPFoxy为您提供的长期稳定可靠的代理IP服务<br>让您的线上业务获得无限规模化增长的机会</p>
-				<a href="https://referral.ipfoxy.com/Support" class="referral-button">开始免费试用
+				<p class="referral-desc">使用123为您提供的长期稳定可靠的代理IP服务<br>让您的线上业务获得无限规模化增长的机会</p>
+				<a href="https://referral.123.com/Support" class="referral-button">开始免费试用
 					<i class="fa-solid fa-arrow-right"></i>
 				</a>
 			</div>
@@ -475,21 +475,28 @@
                 }
             }
 
-            // 生成CURL命令
-            let curlCommand = '';
-            if (outputs.host !== '-' && outputs.port !== '-') {
-                const protocol = outputs.protocol !== '未知协议' ? outputs.protocol : 'http';
-                const auth = outputs.username !== '-' && outputs.password !== '-' 
-                            ? `${outputs.username}:${outputs.password}@` 
-                            : '';
-                curlCommand = `curl -x "${protocol}://${auth}${outputs.host}:${outputs.port}" http://www.ip-api.com/json`;
-            } else {
-                curlCommand = '请正确输入代理信息以生成测试命令';
-            }
+			let curlCommand = '';
+			if (outputs.host !== '-' && outputs.port !== '-') {
+				const protocol = (outputs.protocol !== '未知协议' ? outputs.protocol : 'http').toLowerCase();
 
-            const formatText = `协议: ${outputs.protocol}\n主机: ${outputs.host}\n端口: ${outputs.port}\n用户: ${outputs.username}\n密码: ${outputs.password}`;
+				if (protocol === 'socks5') {
+					curlCommand = `curl -x "socks5h://${outputs.username !== '-' && outputs.password !== '-' 
+						? `${outputs.username}:${outputs.password}@` : ''}${outputs.host}:${outputs.port}" ip-api.com`;
+				} else if (protocol === 'http' || protocol === 'https') {
+					const auth = outputs.username !== '-' && outputs.password !== '-' 
+								? `${outputs.username}:${outputs.password}@` 
+								: '';
+					curlCommand = `curl -x "${protocol}://${auth}${outputs.host}:${outputs.port}" ip-api.com`;
+				} else {
+					curlCommand = '仅支持HTTP、HTTPS和Socks5协议';
+				}
+			} else {
+				curlCommand = '请正确输入代理信息以生成测试命令';
+			}
 
-            document.getElementById('protocol').textContent = outputs.protocol;
+			const formatText = `协议: ${outputs.protocol.toLowerCase()}\n主机: ${outputs.host}\n端口: ${outputs.port}\n用户: ${outputs.username}\n密码: ${outputs.password}`;
+
+            document.getElementById('protocol').textContent = outputs.protocol.toLowerCase();
             document.getElementById('host').textContent = outputs.host;
             document.getElementById('port').textContent = outputs.port;
             document.getElementById('username').textContent = outputs.username;
