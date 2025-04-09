@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -22,6 +22,26 @@
             border-radius: 12px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             padding: 30px;
+            position: relative;
+        }
+        /* 语言切换按钮 */
+        #language-switcher {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+        }
+        #language-switcher button {
+            background: var(--secondary-color);
+            border: none;
+            color: #fff;
+            padding: 6px 12px;
+            margin-left: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        #language-switcher button.active {
+            background: var(--primary-color);
         }
         .title {
             color: var(--primary-color);
@@ -40,7 +60,7 @@
             align-items: center;
             gap: 10px;
             margin-bottom: 10px;
-			position: relative;
+            position: relative;
         }
         .help-text {
             color: #666;
@@ -52,15 +72,15 @@
             line-height: 1.6;
         }
         input[type="text"] {
-			width: calc(100% - 4px);
-			padding: 12px;
-			border: 2px solid #ddd;
-			border-radius: 8px;
-			font-size: 16px;
-			transition: all 0.3s;
-			box-sizing: border-box;
-			margin: 0 2px;
-		}
+            width: calc(100% - 4px);
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s;
+            box-sizing: border-box;
+            margin: 0 2px;
+        }
         input[type="text"]:focus {
             border-color: var(--secondary-color);
             outline: none;
@@ -165,24 +185,24 @@
             margin: 0;
             line-height: 1.5;
         }
-		.help-icon {
+        .help-icon {
             cursor: help;
             color: #666;
             font-size: 0.8em;
             position: relative;
             margin-left: 5px;
-			transition: all 0.2s;
+            transition: all 0.2s;
         }
-		.help-icon:hover {
+        .help-icon:hover {
             color: var(--secondary-color);
         }
         .help-icon:hover::after {
-            content: "CURL指令的使用方式：\A────────────────\A *Windows用户：按键盘Win+R键，输入CMD回车，在命令行粘贴指令\A *苹果Mac用户：在启动台找到“终端”，在终端粘贴指令\A────────────────\A 指令示例：curl -x \"协议://用户:密码@主机:端口\" URL";
+            content: attr(data-tooltip);
             white-space: pre-wrap;
             position: absolute;
-			background: rgba(0,0,0,0.8);
-			color: #fff;
-			backdrop-filter: blur(2px);
+            background: rgba(0,0,0,0.8);
+            color: #fff;
+            backdrop-filter: blur(2px);
             padding: 10px 15px;
             border-radius: 6px;
             font-size: 14px;
@@ -203,9 +223,9 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             overflow: hidden;
             transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-			background-image: url("./img/referralBg.png");
-			background-repeat: no-repeat, no-repeat;
-			background-position: right, left; 
+            background-image: url("./img/referralBg.png");
+            background-repeat: no-repeat, no-repeat;
+            background-position: right, left; 
         }
         .referral-container:hover {
             transform: translateY(-5px);
@@ -241,12 +261,12 @@
             margin-bottom: 8px;
             letter-spacing: 1px;
         }
-		.referral-title-black {
-			color: #19304a
-		}
-		.referral-title-blue {
-			color: #239dfa
-		}
+        .referral-title-black {
+            color: #19304a;
+        }
+        .referral-title-blue {
+            color: #239dfa;
+        }
         .referral-desc {
             color: #7f7f7f;
             font-size: 0.95em;
@@ -274,139 +294,275 @@
 </head>
 <body>
     <div class="container">
+        <!-- 语言切换按钮 -->
+        <div id="language-switcher">
+            <button id="btn-zh" class="active" onclick="setLanguage('zh')">中文</button>
+            <button id="btn-en" onclick="setLanguage('en')">English</button>
+        </div>
+
         <h1 class="title">
             <i class="fas fa-tools"></i>
-            代理信息解析助手
+            <span id="page-title">代理信息解析助手</span>
         </h1>
 
         <div class="input-section">
             <div class="input-header">
                 <i class="fas fa-keyboard"></i>
-                <h3>在这里粘贴代理信息</h3>
+                <h3 id="input-header">在这里粘贴代理信息</h3>
             </div>
             
             <input type="text" id="proxy-input" 
                    placeholder="例如：socks5://127.0.0.1:8080:user:pass"
                    oninput="parseProxy(this.value)">
 
-            <div class="help-text">
+            <div class="help-text" id="help-text">
                 <i class="fas fa-info-circle"></i>
                 支持多种格式自动识别，输入时自动解析。常见格式示例见页面最下方。
             </div>
 
             <div class="error-message" id="error-msg">
                 <i class="fas fa-exclamation-triangle"></i>
-                <span>无法识别的格式，请检查输入是否正确</span>
+                <span id="error-msg-text">无法识别的格式，请检查输入是否正确</span>
             </div>
         </div>
 
         <div class="output-section">
             <div class="input-header">
                 <i class="fas fa-file-signature"></i>
-                <h3>解析结果</h3>
+                <h3 id="output-header">解析结果</h3>
             </div>
             
             <div class="output-grid">
                 <div class="output-item">
                     <div class="output-label">
                         <i class="fas fa-network-wired"></i>
-                        协议类型
+                        <span id="protocol-label">协议类型</span>
                     </div>
                     <div class="output-value" id="protocol">-</div>
                 </div>
                 <div class="output-item">
                     <div class="output-label">
                         <i class="fas fa-server"></i>
-                        服务器地址
+                        <span id="host-label">服务器地址</span>
                     </div>
                     <div class="output-value" id="host">-</div>
                 </div>
                 <div class="output-item">
                     <div class="output-label">
                         <i class="fas fa-plug"></i>
-                        端口号
+                        <span id="port-label">端口号</span>
                     </div>
                     <div class="output-value" id="port">-</div>
                 </div>
                 <div class="output-item">
                     <div class="output-label">
                         <i class="fas fa-user"></i>
-                        用户名
+                        <span id="username-label">用户名</span>
                     </div>
                     <div class="output-value" id="username">-</div>
                 </div>
                 <div class="output-item">
                     <div class="output-label">
                         <i class="fas fa-lock"></i>
-                        密码
+                        <span id="password-label">密码</span>
                     </div>
                     <div class="output-value" id="password">-</div>
                 </div>
-				
-
                 
                 <div class="formatted-box">
-					<div class="input-header">
-						<i class="fa-solid fa-paste"></i>
-						<h3>文本复制</h3>
-					</div>
+                    <div class="input-header">
+                        <i class="fa-solid fa-paste"></i>
+                        <h3 id="copy-result-header">文本复制</h3>
+                    </div>
                     <div class="formatted-content">
                         <div id="formatted-text">-</div>
                         <button class="copy-btn" onclick="copyResult(event)">
                             <i class="fas fa-copy"></i>
-                            <span>复制结果</span>
+                            <span id="copy-result-btn">复制结果</span>
                         </button>
                     </div>
                 </div>
 
-				<div class="formatted-box">
-					<div class="input-header">
-						<i class="fa-solid fa-paste"></i>
-						<h3>CURL指令</h3>
-						<i class="fas fa-question-circle help-icon"></i>
-					</div>
-					<div class="formatted-content">
-						<div id="curl-command">-</div>
-						<button class="copy-btn" onclick="copyCurl(event)">
-							<i class="fas fa-copy"></i>
-							<span>复制CURL</span>
-						</button>
-					</div>
-				</div>
+                <div class="formatted-box">
+                    <div class="input-header">
+                        <i class="fa-solid fa-paste"></i>
+                        <h3 id="curl-header">CURL指令</h3>
+                        <i class="fas fa-question-circle help-icon" id="curl-tooltip" data-tooltip="CURL指令的使用方式：\A────────────────\A *Windows用户：按键盘Win+R键，输入CMD回车，在命令行粘贴指令\A *苹果Mac用户：在启动台找到“终端”，在终端粘贴指令\A────────────────\A 指令示例：curl -x &quot;协议://用户:密码@主机:端口&quot; URL"></i>
+                    </div>
+                    <div class="formatted-content">
+                        <div id="curl-command">-</div>
+                        <button class="copy-btn" onclick="copyCurl(event)">
+                            <i class="fas fa-copy"></i>
+                            <span id="copy-curl-btn">复制CURL</span>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
-		
 
         <div class="example-section">
-            <div class="example-title">
-                <i class="fas fa-lightbulb"></i>
-                支持的格式示例：
+            <div class="example-title" id="format-title">
+                <i class="fas fa-lightbulb"></i> 支持的格式示例：
             </div>
-            <div class="example-item">user:pass@127.0.0.1:8080</div>
-            <div class="example-item">socks5://127.0.0.1:8080:user:pass</div>
-            <div class="example-item">127.0.0.1:8080@user:pass</div>
-            <div class="example-item">127.0.0.1:8080:user:pass</div>
+            <div class="example-item" id="example1">user:pass@127.0.0.1:8080</div>
+            <div class="example-item" id="example2">socks5://127.0.0.1:8080:user:pass</div>
+            <div class="example-item" id="example3">127.0.0.1:8080@user:pass</div>
+            <div class="example-item" id="example4">127.0.0.1:8080:user:pass</div>
         </div>
-		
-		<div class="referral-container">
-			<div class="referral-corner">推荐</div>
-			<div class="referral-content">
-			<div class="referral-title">
-				<span class="referral-title-black">稳定可靠的全球</span><span class="referral-title-blue">动静态代理IP</span>
-			</div>
-				<p class="referral-desc">使用IPFoxy为您提供的长期稳定可靠的代理IP服务<br>让您的线上业务获得无限规模化增长的机会</p>
-				<a href="https://referral.ipfoxy.com/Support" class="referral-button">开始免费试用
-					<i class="fa-solid fa-arrow-right"></i>
-				</a>
-			</div>
-		</div>
-		
+        
+        <div class="referral-container">
+            <div class="referral-corner" id="referral-corner">推荐</div>
+            <div class="referral-content">
+                <div class="referral-title">
+                    <span class="referral-title-black" id="referral-title-black">稳定可靠的全球</span>
+                    <span class="referral-title-blue" id="referral-title-blue">动静态代理IP</span>
+                </div>
+                <p class="referral-desc" id="referral-desc">使用IPFoxy为您提供的长期稳定可靠的代理IP服务<br>让您的线上业务获得无限规模化增长的机会</p> 
+                <a href="https://referral.ipfoxy.com/Support" class="referral-button" id="referral-button">开始免费试用
+                    <i class="fa-solid fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+        
     </div>
 
     <script>
+        // 翻译文本字典，添加了 unknownProtocol 与 copiedConfirmation
+        const translations = {
+            zh: { 
+                pageTitle: "代理信息解析助手",
+                inputHeader: "在这里粘贴代理信息",
+                placeholder: "例如：socks5://127.0.0.1:8080:user:pass",
+                helpText: "支持多种格式自动识别，输入时自动解析。常见格式示例见页面最下方。",
+                errorMsg: "无法识别的格式，请检查输入是否正确",
+                outputHeader: "解析结果",
+                protocolLabel: "协议类型",
+                hostLabel: "服务器地址",
+                portLabel: "端口号",
+                usernameLabel: "用户名",
+                passwordLabel: "密码",
+                copyResultHeader: "文本复制",
+                copyResultBtn: "复制结果",
+                curlHeader: "CURL指令",
+                copyCurlBtn: "复制CURL",
+                formatTitle: "支持的格式示例：",
+                example1: "user:pass@127.0.0.1:8080",
+                example2: "socks5://127.0.0.1:8080:user:pass",
+                example3: "127.0.0.1:8080@user:pass",
+                example4: "127.0.0.1:8080:user:pass",
+                protocolLine: "协议: ",
+                hostLine: "主机: ",
+                portLine: "端口: ",
+                usernameLine: "用户: ",
+                passwordLine: "密码: ",
+                curlError: "仅支持HTTP、HTTPS和Socks5协议",
+                curlEmpty: "请正确输入代理信息以生成测试命令",
+                curlTooltip: "CURL指令的使用方式：\A────────────────\A *Windows用户：按键盘Win+R键，输入CMD回车，在命令行粘贴指令\A *苹果Mac用户：在启动台找到“终端”，在终端粘贴指令\A────────────────\A 指令示例：curl -x \"协议://用户:密码@主机:端口\" URL",
+                referralCorner: "推荐",
+                referralTitleBlack: "稳定可靠的全球",
+                referralTitleBlue: "动静态代理IP",
+                referralDesc: "使用IPFoxy为您提供的长期稳定可靠的代理IP服务<br>让您的线上业务获得无限规模化增长的机会",
+                referralButton: "开始免费试用",
+                unknownProtocol: "未知协议",
+                copiedConfirmation: "已复制！"
+            },
+            en: {
+                pageTitle: "Proxy Information Parsing Assistant",
+                inputHeader: "Paste proxy information here",
+                placeholder: "e.g., socks5://127.0.0.1:8080:user:pass",
+                helpText: "Supports multiple formats auto-detection, automatically parsing as you type. See common examples at the bottom.",
+                errorMsg: "Unrecognized format, please check if your input is correct",
+                outputHeader: "Parsed Result",
+                protocolLabel: "Protocol",
+                hostLabel: "Server Address",
+                portLabel: "Port",
+                usernameLabel: "Username",
+                passwordLabel: "Password",
+                copyResultHeader: "Copy Text",
+                copyResultBtn: "Copy Result",
+                curlHeader: "CURL Command",
+                copyCurlBtn: "Copy CURL",
+                formatTitle: "Supported Format Examples:",
+                example1: "user:pass@127.0.0.1:8080",
+                example2: "socks5://127.0.0.1:8080:user:pass",
+                example3: "127.0.0.1:8080@user:pass",
+                example4: "127.0.0.1:8080:user:pass",
+                protocolLine: "Protocol: ",
+                hostLine: "Host: ",
+                portLine: "Port: ",
+                usernameLine: "Username: ",
+                passwordLine: "Password: ",
+                curlError: "Only supports HTTP, HTTPS, and SOCKS5 protocols",
+                curlEmpty: "Please input correct proxy information to generate a test command",
+                curlTooltip: "CURL Command Usage:\A────────────────\A * Windows users: Press Win+R, type CMD, and paste the command in the CMD.\A * macOS users: Open Terminal from Launchpad and paste the command.\A────────────────\A Example: curl -x \"protocol://user:password@host:port\" URL",
+                referralCorner: "Recommended",
+                referralTitleBlack: "Secure and Dependable",
+                referralTitleBlue: "Global Proxy Service",
+                referralDesc: "Utilize the secure proxy services provided by IPFoxy to empower your online business with the opportunity for unlimited scaled growth",
+                referralButton: "Start Free Trial",
+                unknownProtocol: "unknown protocol",
+                copiedConfirmation: "Copied!"
+            }
+        };
+
+        // 当前语言，默认中文
+        let currentLang = 'zh';
+
+        // 更新页面所有文本
+        function updateUI() {
+            const t = translations[currentLang];
+            document.title = t.pageTitle;
+            document.getElementById('page-title').textContent = t.pageTitle;
+            document.getElementById('input-header').textContent = t.inputHeader;
+            document.getElementById('proxy-input').placeholder = t.placeholder;
+            document.getElementById('help-text').innerHTML = `<i class="fas fa-info-circle"></i> ${t.helpText}`;
+            document.getElementById('error-msg-text').textContent = t.errorMsg;
+            document.getElementById('output-header').textContent = t.outputHeader;
+            document.getElementById('protocol-label').textContent = t.protocolLabel;
+            document.getElementById('host-label').textContent = t.hostLabel;
+            document.getElementById('port-label').textContent = t.portLabel;
+            document.getElementById('username-label').textContent = t.usernameLabel;
+            document.getElementById('password-label').textContent = t.passwordLabel;
+            document.getElementById('copy-result-header').textContent = t.copyResultHeader;
+            document.getElementById('copy-result-btn').textContent = t.copyResultBtn;
+            document.getElementById('curl-header').textContent = t.curlHeader;
+            document.getElementById('copy-curl-btn').textContent = t.copyCurlBtn;
+            document.getElementById('format-title').innerHTML = `<i class="fas fa-lightbulb"></i> ${t.formatTitle}`;
+            document.getElementById('example1').textContent = t.example1;
+            document.getElementById('example2').textContent = t.example2;
+            document.getElementById('example3').textContent = t.example3;
+            document.getElementById('example4').textContent = t.example4;
+            document.getElementById('curl-tooltip').setAttribute('data-tooltip', t.curlTooltip);
+            document.getElementById('referral-corner').textContent = t.referralCorner;
+            document.getElementById('referral-title-black').textContent = t.referralTitleBlack;
+            document.getElementById('referral-title-blue').textContent = t.referralTitleBlue;
+            document.getElementById('referral-desc').innerHTML = t.referralDesc;
+            document.getElementById('referral-button').textContent = t.referralButton;
+
+            // 若已有解析结果，更新复制的文本（调用parseProxy再更新格式化文本）
+            const input = document.getElementById('proxy-input').value;
+            if(input.trim().length > 0) {
+                parseProxy(input);
+            } else {
+                document.getElementById('formatted-text').textContent = '-';
+                document.getElementById('curl-command').textContent = '-';
+            }
+        }
+
+        // 设置语言
+        function setLanguage(lang) {
+            currentLang = lang;
+            // 切换按钮样式
+            document.getElementById('btn-zh').classList.toggle('active', lang==='zh');
+            document.getElementById('btn-en').classList.toggle('active', lang==='en');
+            updateUI();
+        }
+
+        // 解析代理信息函数（基于原代码，格式化文本采用当前语言）
         function parseProxy(input) {
+            const t = translations[currentLang];
             const outputs = {
-                protocol: '未知协议',
+                protocol: t.unknownProtocol,
                 host: '-',
                 port: '-',
                 username: '-',
@@ -475,26 +631,26 @@
                 }
             }
 
-			let curlCommand = '';
-			if (outputs.host !== '-' && outputs.port !== '-') {
-				const protocol = (outputs.protocol !== '未知协议' ? outputs.protocol : 'http').toLowerCase();
+            let curlCommand = '';
+            if (outputs.host !== '-' && outputs.port !== '-') {
+                const protocol = (outputs.protocol !== t.unknownProtocol ? outputs.protocol : 'http').toLowerCase();
 
-				if (protocol === 'socks5') {
-					curlCommand = `curl -x "socks5h://${outputs.username !== '-' && outputs.password !== '-' 
-						? `${outputs.username}:${outputs.password}@` : ''}${outputs.host}:${outputs.port}" ip-api.com`;
-				} else if (protocol === 'http' || protocol === 'https') {
-					const auth = outputs.username !== '-' && outputs.password !== '-' 
-								? `${outputs.username}:${outputs.password}@` 
-								: '';
-					curlCommand = `curl -x "${protocol}://${auth}${outputs.host}:${outputs.port}" ip-api.com`;
-				} else {
-					curlCommand = '仅支持HTTP、HTTPS和Socks5协议';
-				}
-			} else {
-				curlCommand = '请正确输入代理信息以生成测试命令';
-			}
+                if (protocol === 'socks5') {
+                    curlCommand = `curl -x "socks5h://${outputs.username !== '-' && outputs.password !== '-' 
+                        ? `${outputs.username}:${outputs.password}@` : ''}${outputs.host}:${outputs.port}" ip-api.com`;
+                } else if (protocol === 'http' || protocol === 'https') {
+                    const auth = outputs.username !== '-' && outputs.password !== '-' 
+                                ? `${outputs.username}:${outputs.password}@` 
+                                : '';
+                    curlCommand = `curl -x "${protocol}://${auth}${outputs.host}:${outputs.port}" ip-api.com`;
+                } else {
+                    curlCommand = t.curlError;
+                }
+            } else {
+                curlCommand = t.curlEmpty;
+            }
 
-			const formatText = `协议: ${outputs.protocol.toLowerCase()}\n主机: ${outputs.host}\n端口: ${outputs.port}\n用户: ${outputs.username}\n密码: ${outputs.password}`;
+            const formatText = `${t.protocolLine}${outputs.protocol.toLowerCase()}\n${t.hostLine}${outputs.host}\n${t.portLine}${outputs.port}\n${t.usernameLine}${outputs.username}\n${t.passwordLine}${outputs.password}`;
 
             document.getElementById('protocol').textContent = outputs.protocol.toLowerCase();
             document.getElementById('host').textContent = outputs.host;
@@ -518,9 +674,10 @@
         }
 
         function handleCopy(btn, text) {
+            const t = translations[currentLang];
             const originalHTML = btn.innerHTML;
             navigator.clipboard.writeText(text).then(() => {
-                btn.innerHTML = '<i class="fas fa-check"></i> 已复制！';
+                btn.innerHTML = `<i class="fas fa-check"></i> ${t.copiedConfirmation}`;
                 btn.classList.add('copied');
                 setTimeout(() => {
                     btn.innerHTML = originalHTML;
@@ -542,6 +699,9 @@
             const text = document.getElementById('curl-command').textContent;
             handleCopy(btn, text);
         }
+
+        // 初始化
+        updateUI();
     </script>
 </body>
 </html>
