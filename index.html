@@ -794,21 +794,21 @@
                 height: 200,
                 correctLevel: QRCode.CorrectLevel.H
             });
-    			setTimeout(function() {
-    				let qrImages1 = document.querySelectorAll("#qrcode-shadowrocket img");
-    				qrImages1.forEach(function(img) {
-    					img.style.display = "block";
-    					img.style.margin = "0 auto";
-    					img.style.padding = "10px";
-    				});
-    
-    				let qrImages2 = document.querySelectorAll("#qrcode-v2ray img");
-    				qrImages2.forEach(function(img) {
-    					img.style.display = "block";
-    					img.style.margin = "0 auto";
-    					img.style.padding = "10px";
-    				});
-    			}, 10);
+			setTimeout(function() {
+				let qrImages1 = document.querySelectorAll("#qrcode-shadowrocket img");
+				qrImages1.forEach(function(img) {
+					img.style.display = "block";
+					img.style.margin = "0 auto";
+					img.style.padding = "10px";
+				});
+
+				let qrImages2 = document.querySelectorAll("#qrcode-v2ray img");
+				qrImages2.forEach(function(img) {
+					img.style.display = "block";
+					img.style.margin = "0 auto";
+					img.style.padding = "10px";
+				});
+			}, 10);
         }
 
         function handleCopy(btn, text) {
