@@ -1,590 +1,228 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-<head>
+  
+  <head>
     <meta charset="UTF-8">
     <title>代理信息解析助手</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- 引入QRCode.js库 -->
     <script src="./js/qrcode.min.js"></script>
-    <style>
-        :root { 
-            --primary-color: #4CAF50; 
-            --secondary-color: #2196F3; 
-            --code-color: #2c3e50;
-        }
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 30px;
-            background: #f0f8ff;
-        }
-        .container {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            padding: 30px;
-            position: relative;
-        }
-        /* 语言切换按钮 */
-        #language-switcher {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-        }
-        #language-switcher button {
-            background: var(--secondary-color);
-            border: none;
-            color: #fff;
-            padding: 6px 12px;
-            margin-left: 5px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        #language-switcher button.active {
-            background: var(--primary-color);
-        }
-        /* 标题居中 */
-        .title {
-            color: var(--primary-color);
-            text-align: center;
-            margin-bottom: 30px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            justify-content: center;
-        }
-        .input-section {
-            margin-bottom: 30px;
-        }
-        .input-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 10px;
-            position: relative;
-        }
-        .help-text {
-            color: #666;
-            font-size: 0.9em;
-            margin: 10px 0;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 6px;
-            line-height: 1.6;
-        }
-        input[type="text"] {
-            width: calc(100% - 4px);
-            padding: 12px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            font-size: 16px;
-            transition: all 0.3s;
-            box-sizing: border-box;
-        }
-        input[type="text"]:focus {
-            border-color: var(--secondary-color);
-            outline: none;
-            box-shadow: 0 0 8px rgba(33,150,243,0.2);
-        }
-        .btn {
-            display: inline-block;
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            font-size: 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background 0.3s;
-            margin-top: 10px;
-        }
-        .btn:hover {
-            background: #388e3c;
-        }
-        .output-section {
-            margin-top: 25px;
-        }
-        .output-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin-top: 20px;
-        }
-        /* 输出区域采用左对齐 */
-        .output-item {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            border-left: 4px solid var(--primary-color);
-            text-align: left;
-        }
-        .output-label {
-            color: #666;
-            font-size: 0.9em;
-            margin-bottom: 5px;
-            text-align: left;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .output-value {
-            color: #333;
-            font-weight: 500;
-            font-size: 1.1em;
-            word-break: break-all;
-            text-align: left;
-        }
-        .error-message {
-            color: #ff4444;
-            padding: 10px;
-            background: #ffecec;
-            border-radius: 6px;
-            margin-top: 10px;
-            display: none;
-            text-align: left;
-        }
-        .example-section {
-            margin-top: 25px;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            text-align: left;
-        }
-        .example-title {
-            color: #666;
-            font-weight: bold;
-            margin-bottom: 10px;
-            text-align: left;
-        }
-        .example-item {
-            color: #444;
-            font-size: 0.9em;
-            margin: 8px 0;
-            padding-left: 10px;
-            border-left: 3px solid #ddd;
-            text-align: left;
-        }
-        .formatted-box {
-            grid-column: 1 / -1;
-            position: relative;
-            margin-top: 10px;
-        }
-        .formatted-content {
-            font-family: 'Courier New', monospace;
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid #ddd;
-            color: var(--code-color);
-            white-space: pre-wrap;
-            word-break: break-all;
-            position: relative;
-            padding-right: 120px;
-            text-align: left;
-        }
-        .copy-btn {
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: var(--secondary-color);
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        .copy-btn:hover {
-            background: #1976D2;
-        }
-        .copy-btn.copied {
-            background: var(--primary-color);
-            pointer-events: none;
-        }
-        #formatted-text, #curl-command {
-            margin: 0;
-            line-height: 1.5;
-            text-align: left;
-        }
-        .help-icon {
-            cursor: help;
-            color: #666;
-            font-size: 0.8em;
-            position: relative;
-            margin-left: 5px;
-            transition: all 0.2s;
-        }
-        .help-icon:hover {
-            color: var(--secondary-color);
-        }
-        .help-icon:hover::after {
-            content: attr(data-tooltip);
-            white-space: pre-wrap;
-            position: absolute;
-            background: rgba(0,0,0,0.8);
-            color: #fff;
-            backdrop-filter: blur(2px);
-            padding: 10px 15px;
-            border-radius: 6px;
-            font-size: 14px;
-            width: 480px;
-            left: 25px;
-            top: 0;
-            z-index: 1000;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            line-height: 1.6;
-        }
-        /* 恢复推荐模块居中显示 */
-        .referral-container {
-            position: relative;
-            margin-top: 30px;
-            padding: 25px 20px;
-            background: #ffffff;
-            border-radius: 12px;
-            border: 2px solid #239dfa;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            overflow: hidden;
-            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            background-image: url("./img/referralBg.png");
-            background-repeat: no-repeat, no-repeat;
-            background-position: right, left;
-            text-align: center;
-        }
-        .referral-container:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(35, 157, 250, 0.2);
-        }
-        .referral-corner {
-            position: absolute;
-            top: 10px;
-            right: -28px;
-            width: 90px;
-            height: 24px;
-            background: #239dfa;
-            color: white;
-            text-align: center;
-            line-height: 24px;
-            transform: rotate(45deg);
-            font-size: 12px;
-            font-weight: bold;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-            font-family: Arial, sans-serif;
-            letter-spacing: 1px;
-        }
-        .referral-content {
-            text-align: center;
-            line-height: 1.6;
-            position: relative;
-            z-index: 1;
-            padding: 5px;
-        }
-        .referral-title {
-            font-size: 1.5em;
-            font-weight: bold;
-            margin-bottom: 8px;
-            letter-spacing: 1px;
-            text-align: center;
-        }
-        .referral-title-black {
-            color: #19304a;
-        }
-        .referral-title-blue {
-            color: #239dfa;
-        }
-        .referral-desc {
-            color: #7f7f7f;
-            font-size: 0.95em;
-            margin-bottom: 15px;
-            padding: 0 15px;
-            text-align: center;
-        }
-        .referral-button {
-            display: inline-block;
-            background: #239dfa;
-            color: white;
-            padding: 10px 25px;
-            border-radius: 25px;
-            text-decoration: none;
-            font-weight: bold;
-            transition: all 0.3s;
-            border: 2px solid transparent;
-        }
-        .referral-button:hover {
-            background: white;
-            color: #239dfa;
-            border-color: #239dfa;
-            transform: translateY(-2px);
-        }
-        /* 二维码区域样式（输出区域左对齐） */
-        #qr-section {
-            margin-top: 30px;
-            display: none;
-            text-align: left;
-        }
-    </style>
-</head>
-<body>
+    <style>:root { --primary-color: #4CAF50; --secondary-color: #2196F3; --code-color: #2c3e50; } body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 800px; margin: 20px auto; padding: 30px; background: #f0f8ff; } .container { background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); padding: 30px; position: relative; } /* 语言切换按钮 */ #language-switcher { position: absolute; top: 15px; right: 15px; } #language-switcher button { background: var(--secondary-color); border: none; color: #fff; padding: 6px 12px; margin-left: 5px; border-radius: 4px; cursor: pointer; font-size: 14px; } #language-switcher button.active { background: var(--primary-color); } /* 标题居中 */ .title { color: var(--primary-color); text-align: center; margin-bottom: 30px; display: flex; align-items: center; gap: 10px; justify-content: center; } .input-section { margin-bottom: 30px; } .input-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; position: relative; } .help-text { color: #666; font-size: 0.9em; margin: 10px 0; padding: 15px; background: #f8f9fa; border-radius: 6px; line-height: 1.6; } input[type="text"] { width: calc(100% - 4px); padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px; transition: all 0.3s; box-sizing: border-box; } input[type="text"]:focus { border-color: var(--secondary-color); outline: none; box-shadow: 0 0 8px rgba(33,150,243,0.2); } .btn { display: inline-block; background: var(--primary-color); color: white; border: none; padding: 10px 20px; font-size: 16px; border-radius: 8px; cursor: pointer; transition: background 0.3s; margin-top: 10px; } .btn:hover { background: #388e3c; } .output-section { margin-top: 25px; } .output-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 20px; } /* 输出区域采用左对齐 */ .output-item { background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid var(--primary-color); text-align: left; } .output-label { color: #666; font-size: 0.9em; margin-bottom: 5px; text-align: left; display: flex; align-items: center; gap: 8px; } .output-value { color: #333; font-weight: 500; font-size: 1.1em; word-break: break-all; text-align: left; } .error-message { color: #ff4444; padding: 10px; background: #ffecec; border-radius: 6px; margin-top: 10px; display: none; text-align: left; } .example-section { margin-top: 25px; padding: 15px; background: #f8f9fa; border-radius: 8px; text-align: left; } .example-title { color: #666; font-weight: bold; margin-bottom: 10px; text-align: left; } .example-item { color: #444; font-size: 0.9em; margin: 8px 0; padding-left: 10px; border-left: 3px solid #ddd; text-align: left; } .formatted-box { grid-column: 1 / -1; position: relative; margin-top: 10px; } .formatted-content { font-family: 'Courier New', monospace; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #ddd; color: var(--code-color); white-space: pre-wrap; word-break: break-all; position: relative; padding-right: 120px; text-align: left; } .copy-btn { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); background: var(--secondary-color); color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 5px; } .copy-btn:hover { background: #1976D2; } .copy-btn.copied { background: var(--primary-color); pointer-events: none; } #formatted-text, #curl-command { margin: 0; line-height: 1.5; text-align: left; } .help-icon { cursor: help; color: #666; font-size: 0.8em; position: relative; margin-left: 5px; transition: all 0.2s; } .help-icon:hover { color: var(--secondary-color); } .help-icon:hover::after { content: attr(data-tooltip); white-space: pre-wrap; position: absolute; background: rgba(0,0,0,0.8); color: #fff; backdrop-filter: blur(2px); padding: 10px 15px; border-radius: 6px; font-size: 14px; width: 480px; left: 25px; top: 0; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.15); line-height: 1.6; } /* 恢复推荐模块居中显示 */ .referral-container { position: relative; margin-top: 30px; padding: 25px 20px; background: #ffffff; border-radius: 12px; border: 2px solid #239dfa; box-shadow: 0 2px 8px rgba(0,0,0,0.1); overflow: hidden; transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94); background-image: url("./img/referralBg.png"); background-repeat: no-repeat, no-repeat; background-position: right, left; text-align: center; } .referral-container:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(35, 157, 250, 0.2); } .referral-corner { position: absolute; top: 10px; right: -28px; width: 90px; height: 24px; background: #239dfa; color: white; text-align: center; line-height: 24px; transform: rotate(45deg); font-size: 12px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2); font-family: Arial, sans-serif; letter-spacing: 1px; } .referral-content { text-align: center; line-height: 1.6; position: relative; z-index: 1; padding: 5px; } .referral-title { font-size: 1.5em; font-weight: bold; margin-bottom: 8px; letter-spacing: 1px; text-align: center; } .referral-title-black { color: #19304a; } .referral-title-blue { color: #239dfa; } .referral-desc { color: #7f7f7f; font-size: 0.95em; margin-bottom: 15px; padding: 0 15px; text-align: center; } .referral-button { display: inline-block; background: #239dfa; color: white; padding: 10px 25px; border-radius: 25px; text-decoration: none; font-weight: bold; transition: all 0.3s; border: 2px solid transparent; } .referral-button:hover { background: white; color: #239dfa; border-color: #239dfa; transform: translateY(-2px); } /* 二维码区域样式（输出区域左对齐） */ #qr-section { margin-top: 30px; display: none; text-align: left; }</style></head>
+  
+  <body>
     <div class="container">
-        <!-- 语言切换按钮 -->
-        <div id="language-switcher">
-            <button id="btn-zh" class="active" onclick="setLanguage('zh')">中文</button>
-            <button id="btn-en" onclick="setLanguage('en')">English</button>
-        </div>
-
-        <h1 class="title">
-            <i class="fas fa-tools"></i>
-            <span id="page-title">代理信息解析助手</span>
-        </h1>
-
-        <div class="input-section">
+      <!-- 语言切换按钮 -->
+      <div id="language-switcher">
+        <button id="btn-zh" class="active" onclick="setLanguage('zh')">中文</button>
+        <button id="btn-en" onclick="setLanguage('en')">English</button></div>
+      <h1 class="title">
+        <i class="fas fa-tools"></i>
+        <span id="page-title">代理信息解析助手</span></h1>
+      <div class="input-section">
+        <div class="input-header">
+          <i class="fas fa-keyboard"></i>
+          <h3 id="input-header">在这里粘贴代理信息</h3></div>
+        <input type="text" id="proxy-input" placeholder="例如：socks5://127.0.0.1:8080:user:pass" oninput="handleInput(this.value)">
+        <div class="help-text" id="help-text">
+          <i class="fas fa-info-circle"></i>支持多种格式自动识别，输入时自动解析。常见格式示例见页面最下方。</div>
+        <div class="error-message" id="error-msg">
+          <i class="fas fa-exclamation-triangle"></i>
+          <span id="error-msg-text">无法识别的格式，请检查输入是否正确</span></div>
+      </div>
+      <!-- 解析结果展示 -->
+      <div class="output-section">
+        <div class="input-header">
+          <i class="fas fa-file-signature"></i>
+          <h3 id="output-header">解析结果</h3></div>
+        <div class="output-grid">
+          <div class="output-item">
+            <div class="output-label">
+              <i class="fas fa-network-wired"></i>
+              <span id="protocol-label">协议类型</span></div>
+            <div class="output-value" id="protocol">-</div></div>
+          <div class="output-item">
+            <div class="output-label">
+              <i class="fas fa-server"></i>
+              <span id="host-label">服务器地址</span></div>
+            <div class="output-value" id="host">-</div></div>
+          <div class="output-item">
+            <div class="output-label">
+              <i class="fas fa-plug"></i>
+              <span id="port-label">端口号</span></div>
+            <div class="output-value" id="port">-</div></div>
+          <div class="output-item">
+            <div class="output-label">
+              <i class="fas fa-user"></i>
+              <span id="username-label">用户名</span></div>
+            <div class="output-value" id="username">-</div></div>
+          <div class="output-item">
+            <div class="output-label">
+              <i class="fas fa-lock"></i>
+              <span id="password-label">密码</span></div>
+            <div class="output-value" id="password">-</div></div>
+          <div class="formatted-box">
             <div class="input-header">
-                <i class="fas fa-keyboard"></i>
-                <h3 id="input-header">在这里粘贴代理信息</h3>
+              <i class="fa-solid fa-paste"></i>
+              <h3 id="copy-result-header">文本复制</h3></div>
+            <div class="formatted-content">
+              <div id="formatted-text">-</div>
+              <button class="copy-btn" onclick="copyResult(event)">
+                <i class="fas fa-copy"></i>
+                <span id="copy-result-btn">复制结果</span></button>
             </div>
-            <input type="text" id="proxy-input" 
-                   placeholder="例如：socks5://127.0.0.1:8080:user:pass"
-                   oninput="handleInput(this.value)">
-            <div class="help-text" id="help-text">
-                <i class="fas fa-info-circle"></i>
-                支持多种格式自动识别，输入时自动解析。常见格式示例见页面最下方。
-            </div>
-            <div class="error-message" id="error-msg">
-                <i class="fas fa-exclamation-triangle"></i>
-                <span id="error-msg-text">无法识别的格式，请检查输入是否正确</span>
-            </div>
-        </div>
-
-        <!-- 解析结果展示 -->
-        <div class="output-section">
+          </div>
+          <div class="formatted-box">
             <div class="input-header">
-                <i class="fas fa-file-signature"></i>
-                <h3 id="output-header">解析结果</h3>
+              <i class="fa-solid fa-paste"></i>
+              <h3 id="curl-header">CURL指令</h3>
+              <i class="fas fa-question-circle help-icon" id="curl-tooltip" data-tooltip="CURL指令的使用方式： *Windows用户：按键盘Win+R键，输入CMD回车，在命令行粘贴指令 *苹果Mac用户：在启动台找到“终端”，在终端粘贴指令 （指令示例：curl -x \" 协议://用户:密码@主机:端口\ " URL）"></i>
             </div>
-            <div class="output-grid">
-                <div class="output-item">
-                    <div class="output-label">
-                        <i class="fas fa-network-wired"></i>
-                        <span id="protocol-label">协议类型</span>
-                    </div>
-                    <div class="output-value" id="protocol">-</div>
-                </div>
-                <div class="output-item">
-                    <div class="output-label">
-                        <i class="fas fa-server"></i>
-                        <span id="host-label">服务器地址</span>
-                    </div>
-                    <div class="output-value" id="host">-</div>
-                </div>
-                <div class="output-item">
-                    <div class="output-label">
-                        <i class="fas fa-plug"></i>
-                        <span id="port-label">端口号</span>
-                    </div>
-                    <div class="output-value" id="port">-</div>
-                </div>
-                <div class="output-item">
-                    <div class="output-label">
-                        <i class="fas fa-user"></i>
-                        <span id="username-label">用户名</span>
-                    </div>
-                    <div class="output-value" id="username">-</div>
-                </div>
-                <div class="output-item">
-                    <div class="output-label">
-                        <i class="fas fa-lock"></i>
-                        <span id="password-label">密码</span>
-                    </div>
-                    <div class="output-value" id="password">-</div>
-                </div>
-                
-                <div class="formatted-box">
-                    <div class="input-header">
-                        <i class="fa-solid fa-paste"></i>
-                        <h3 id="copy-result-header">文本复制</h3>
-                    </div>
-                    <div class="formatted-content">
-                        <div id="formatted-text">-</div>
-                        <button class="copy-btn" onclick="copyResult(event)">
-                            <i class="fas fa-copy"></i>
-                            <span id="copy-result-btn">复制结果</span>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="formatted-box">
-                    <div class="input-header">
-                        <i class="fa-solid fa-paste"></i>
-                        <h3 id="curl-header">CURL指令</h3>
-                        <i class="fas fa-question-circle help-icon" id="curl-tooltip" data-tooltip="CURL指令的使用方式： *Windows用户：按键盘Win+R键，输入CMD回车，在命令行粘贴指令 *苹果Mac用户：在启动台找到“终端”，在终端粘贴指令 （指令示例：curl -x \"协议://用户:密码@主机:端口\" URL）"></i>
-                    </div>
-                    <div class="formatted-content">
-                        <div id="curl-command">-</div>
-                        <button class="copy-btn" onclick="copyCurl(event)">
-                            <i class="fas fa-copy"></i>
-                            <span id="copy-curl-btn">复制CURL</span>
-                        </button>
-                    </div>
-                </div>
+            <div class="formatted-content">
+              <div id="curl-command">-</div>
+              <button class="copy-btn" onclick="copyCurl(event)">
+                <i class="fas fa-copy"></i>
+                <span id="copy-curl-btn">复制CURL</span></button>
             </div>
+          </div>
         </div>
-
-        <!-- 二维码展示区域 -->
-        <div id="qr-section">
-            <div class="input-header">
-                <i class="fas fa-qrcode"></i>
-                <h3 id="qr-section-title">二维码</h3>
-            </div>
-            <div class="output-grid">
-                <div class="output-item">
-                    <div class="output-label">
-                        <i class="fas fa-mobile"></i>
-                        <span id="shadowrocket-qr-label">ShadowRocket二维码</span>
-                    </div>
-                    <div id="qrcode-shadowrocket"></div>
-                    <div class="output-value" id="text-shadowrocket"></div>
-                </div>
-                <div class="output-item">
-                    <div class="output-label">
-                        <i class="fas fa-mobile-alt"></i>
-                        <span id="v2ray-qr-label">v2ray二维码</span>
-                    </div>
-                    <div id="qrcode-v2ray"></div>
-                    <div class="output-value" id="text-v2ray"></div>
-                </div>
-            </div>
+      </div>
+      <!-- 二维码展示区域 -->
+      <div id="qr-section">
+        <div class="input-header">
+          <i class="fas fa-qrcode"></i>
+          <h3 id="qr-section-title">二维码</h3></div>
+        <div class="output-grid">
+          <div class="output-item">
+            <div class="output-label">
+              <i class="fas fa-mobile"></i>
+              <span id="shadowrocket-qr-label">ShadowRocket二维码</span></div>
+            <div id="qrcode-shadowrocket"></div>
+            <div class="output-value" id="text-shadowrocket"></div>
+          </div>
+          <div class="output-item">
+            <div class="output-label">
+              <i class="fas fa-mobile-alt"></i>
+              <span id="v2ray-qr-label">v2ray二维码</span></div>
+            <div id="qrcode-v2ray"></div>
+            <div class="output-value" id="text-v2ray"></div>
+          </div>
         </div>
-        
-        <div class="example-section">
-            <div class="example-title" id="format-title">
-                <i class="fas fa-lightbulb"></i> 支持的格式示例：
-            </div>
-            <div class="example-item" id="example1">user:pass@127.0.0.1:8080</div>
-            <div class="example-item" id="example2">socks5://127.0.0.1:8080:user:pass</div>
-            <div class="example-item" id="example3">127.0.0.1:8080@user:pass</div>
-            <div class="example-item" id="example4">127.0.0.1:8080:user:pass</div>
+      </div>
+      <div class="example-section">
+        <div class="example-title" id="format-title">
+          <i class="fas fa-lightbulb"></i>支持的格式示例：</div>
+        <div class="example-item" id="example1">user:pass@127.0.0.1:8080</div>
+        <div class="example-item" id="example2">socks5://127.0.0.1:8080:user:pass</div>
+        <div class="example-item" id="example3">127.0.0.1:8080@user:pass</div>
+        <div class="example-item" id="example4">127.0.0.1:8080:user:pass</div></div>
+      <div class="referral-container">
+        <div class="referral-corner" id="referral-corner">推荐</div>
+        <div class="referral-content">
+          <div class="referral-title">
+            <span class="referral-title-black" id="referral-title-black">稳定可靠的全球</span>
+            <span class="referral-title-blue" id="referral-title-blue">动静态代理IP</span></div>
+          <p class="referral-desc" id="referral-desc">使用IPFoxy为您提供的长期稳定可靠的代理IP服务
+            <br>让您的线上业务获得无限规模化增长的机会</p>
+          <a href="https://referral.ipfoxy.com/Support" class="referral-button" id="referral-button">开始免费试用
+            <i class="fa-solid fa-arrow-right"></i></a>
         </div>
-        
-        <div class="referral-container">
-            <div class="referral-corner" id="referral-corner">推荐</div>
-            <div class="referral-content">
-                <div class="referral-title">
-                    <span class="referral-title-black" id="referral-title-black">稳定可靠的全球</span>
-                    <span class="referral-title-blue" id="referral-title-blue">动静态代理IP</span>
-                </div>
-                <p class="referral-desc" id="referral-desc">
-                    使用IPFoxy为您提供的长期稳定可靠的代理IP服务<br>
-                    让您的线上业务获得无限规模化增长的机会
-                </p> 
-                <a href="https://referral.ipfoxy.com/Support" class="referral-button" id="referral-button">
-                    开始免费试用 <i class="fa-solid fa-arrow-right"></i>
-                </a>
-            </div>
-        </div>
-        
+      </div>
     </div>
+    <script>// 翻译文本字典，新增二维码模块相关文本
+      const translations = {
+        zh: {
+          pageTitle: "代理信息解析助手",
+          inputHeader: "在这里粘贴代理信息",
+          placeholder: "例如：socks5://127.0.0.1:8080:user:pass",
+          helpText: "支持多种格式自动识别，输入时自动解析。常见格式示例见页面最下方。",
+          errorMsg: "无法识别的格式，请检查输入是否正确",
+          outputHeader: "解析结果",
+          protocolLabel: "协议类型",
+          hostLabel: "服务器地址",
+          portLabel: "端口号",
+          usernameLabel: "用户名",
+          passwordLabel: "密码",
+          copyResultHeader: "文本复制",
+          copyResultBtn: "复制结果",
+          curlHeader: "CURL指令",
+          copyCurlBtn: "复制CURL",
+          formatTitle: "支持的格式示例：",
+          example1: "user:pass@127.0.0.1:8080",
+          example2: "socks5://127.0.0.1:8080:user:pass",
+          example3: "127.0.0.1:8080@user:pass",
+          example4: "127.0.0.1:8080:user:pass",
+          protocolLine: "协议: ",
+          hostLine: "主机: ",
+          portLine: "端口: ",
+          usernameLine: "用户: ",
+          passwordLine: "密码: ",
+          curlError: "仅支持HTTP、HTTPS和Socks5协议",
+          curlEmpty: "请正确输入代理信息以生成测试命令",
+          curlTooltip: "CURL指令的使用方式： *Windows用户：按键盘Win+R键，输入CMD回车，在命令行粘贴指令 *苹果Mac用户：在启动台找到“终端”，在终端粘贴指令 （指令示例：curl -x \"协议://用户:密码@主机:端口\" URL）",
+          referralCorner: "推荐",
+          referralTitleBlack: "稳定可靠的全球",
+          referralTitleBlue: "动静态代理IP",
+          referralDesc: "使用IPFoxy为您提供的长期稳定可靠的代理IP服务<br>让您的线上业务获得无限规模化增长的机会",
+          referralButton: "开始免费试用",
+          unknownProtocol: "未知协议",
+          copiedConfirmation: "已复制！",
+          qrSectionTitle: "二维码",
+          shadowrocketQRLabel: "ShadowRocket二维码",
+          v2rayQRLabel: "v2ray二维码"
+        },
+        en: {
+          pageTitle: "Proxy Information Parsing Assistant",
+          inputHeader: "Paste proxy information here",
+          placeholder: "e.g., socks5://127.0.0.1:8080:user:pass",
+          helpText: "Supports multiple formats auto-detection, automatically parsing as you type. See common examples at the bottom.",
+          errorMsg: "Unrecognized format, please check if your input is correct",
+          outputHeader: "Parsed Result",
+          protocolLabel: "Protocol",
+          hostLabel: "Server Address",
+          portLabel: "Port",
+          usernameLabel: "Username",
+          passwordLabel: "Password",
+          copyResultHeader: "Copy Text",
+          copyResultBtn: "Copy Result",
+          curlHeader: "CURL Command",
+          copyCurlBtn: "Copy CURL",
+          formatTitle: "Supported Format Examples:",
+          example1: "user:pass@127.0.0.1:8080",
+          example2: "socks5://127.0.0.1:8080:user:pass",
+          example3: "127.0.0.1:8080@user:pass",
+          example4: "127.0.0.1:8080:user:pass",
+          protocolLine: "Protocol: ",
+          hostLine: "Host: ",
+          portLine: "Port: ",
+          usernameLine: "Username: ",
+          passwordLine: "Password: ",
+          curlError: "Only supports HTTP, HTTPS, and SOCKS5 protocols",
+          curlEmpty: "Please input correct proxy information to generate a test command",
+          curlTooltip: "CURL Command Usage: * Windows users: Press Win+R, type CMD, and paste the command in the CMD. * macOS users: Open Terminal from Launchpad and paste the command. (Example: curl -x \"protocol://user:password@host:port\" URL)",
+          referralCorner: "Recommended",
+          referralTitleBlack: "Secure and Dependable",
+          referralTitleBlue: "Global Proxy Service",
+          referralDesc: "Utilize the secure proxy services provided by IPFoxy to empower your online business with the opportunity for unlimited scaled growth",
+          referralButton: "Start Free Trial",
+          unknownProtocol: "unknown protocol",
+          copiedConfirmation: "Copied!",
+          qrSectionTitle: "QR Codes",
+          shadowrocketQRLabel: "ShadowRocket QR",
+          v2rayQRLabel: "v2ray QR"
+        }
+      };
 
-    <script>
-        // 翻译文本字典，新增二维码模块相关文本
-        const translations = {
-            zh: { 
-                pageTitle: "代理信息解析助手",
-                inputHeader: "在这里粘贴代理信息",
-                placeholder: "例如：socks5://127.0.0.1:8080:user:pass",
-                helpText: "支持多种格式自动识别，输入时自动解析。常见格式示例见页面最下方。",
-                errorMsg: "无法识别的格式，请检查输入是否正确",
-                outputHeader: "解析结果",
-                protocolLabel: "协议类型",
-                hostLabel: "服务器地址",
-                portLabel: "端口号",
-                usernameLabel: "用户名",
-                passwordLabel: "密码",
-                copyResultHeader: "文本复制",
-                copyResultBtn: "复制结果",
-                curlHeader: "CURL指令",
-                copyCurlBtn: "复制CURL",
-                formatTitle: "支持的格式示例：",
-                example1: "user:pass@127.0.0.1:8080",
-                example2: "socks5://127.0.0.1:8080:user:pass",
-                example3: "127.0.0.1:8080@user:pass",
-                example4: "127.0.0.1:8080:user:pass",
-                protocolLine: "协议: ",
-                hostLine: "主机: ",
-                portLine: "端口: ",
-                usernameLine: "用户: ",
-                passwordLine: "密码: ",
-                curlError: "仅支持HTTP、HTTPS和Socks5协议",
-                curlEmpty: "请正确输入代理信息以生成测试命令",
-                curlTooltip: "CURL指令的使用方式： *Windows用户：按键盘Win+R键，输入CMD回车，在命令行粘贴指令 *苹果Mac用户：在启动台找到“终端”，在终端粘贴指令 （指令示例：curl -x \"协议://用户:密码@主机:端口\" URL）",
-                referralCorner: "推荐",
-                referralTitleBlack: "稳定可靠的全球",
-                referralTitleBlue: "动静态代理IP",
-                referralDesc: "使用IPFoxy为您提供的长期稳定可靠的代理IP服务<br>让您的线上业务获得无限规模化增长的机会",
-                referralButton: "开始免费试用",
-                unknownProtocol: "未知协议",
-                copiedConfirmation: "已复制！",
-                qrSectionTitle: "二维码",
-                shadowrocketQRLabel: "ShadowRocket二维码",
-                v2rayQRLabel: "v2ray二维码"
-            },
-            en: {
-                pageTitle: "Proxy Information Parsing Assistant",
-                inputHeader: "Paste proxy information here",
-                placeholder: "e.g., socks5://127.0.0.1:8080:user:pass",
-                helpText: "Supports multiple formats auto-detection, automatically parsing as you type. See common examples at the bottom.",
-                errorMsg: "Unrecognized format, please check if your input is correct",
-                outputHeader: "Parsed Result",
-                protocolLabel: "Protocol",
-                hostLabel: "Server Address",
-                portLabel: "Port",
-                usernameLabel: "Username",
-                passwordLabel: "Password",
-                copyResultHeader: "Copy Text",
-                copyResultBtn: "Copy Result",
-                curlHeader: "CURL Command",
-                copyCurlBtn: "Copy CURL",
-                formatTitle: "Supported Format Examples:",
-                example1: "user:pass@127.0.0.1:8080",
-                example2: "socks5://127.0.0.1:8080:user:pass",
-                example3: "127.0.0.1:8080@user:pass",
-                example4: "127.0.0.1:8080:user:pass",
-                protocolLine: "Protocol: ",
-                hostLine: "Host: ",
-                portLine: "Port: ",
-                usernameLine: "Username: ",
-                passwordLine: "Password: ",
-                curlError: "Only supports HTTP, HTTPS, and SOCKS5 protocols",
-                curlEmpty: "Please input correct proxy information to generate a test command",
-                curlTooltip: "CURL Command Usage: * Windows users: Press Win+R, type CMD, and paste the command in the CMD. * macOS users: Open Terminal from Launchpad and paste the command. (Example: curl -x \"protocol://user:password@host:port\" URL)",
-                referralCorner: "Recommended",
-                referralTitleBlack: "Secure and Dependable",
-                referralTitleBlue: "Global Proxy Service",
-                referralDesc: "Utilize the secure proxy services provided by IPFoxy to empower your online business with the opportunity for unlimited scaled growth",
-                referralButton: "Start Free Trial",
-                unknownProtocol: "unknown protocol",
-                copiedConfirmation: "Copied!",
-                qrSectionTitle: "QR Codes",
-                shadowrocketQRLabel: "ShadowRocket QR",
-                v2rayQRLabel: "v2ray QR"
-            }
-        };
+      // 当前语言，默认中文
+      let currentLang = 'zh';
 
-        // 当前语言，默认中文
-        let currentLang = 'zh';
-
-        // 更新页面所有文本（包括二维码模块）
-        function updateUI() {
-            const t = translations[currentLang];
-            document.title = t.pageTitle;
-            document.getElementById('page-title').textContent = t.pageTitle;
-            document.getElementById('input-header').textContent = t.inputHeader;
-            document.getElementById('proxy-input').placeholder = t.placeholder;
-            document.getElementById('help-text').innerHTML = `<i class="fas fa-info-circle"></i> ${t.helpText}`;
+      // 更新页面所有文本（包括二维码模块）
+      function updateUI() {
+        const t = translations[currentLang];
+        document.title = t.pageTitle;
+        document.getElementById('page-title').textContent = t.pageTitle;
+        document.getElementById('input-header').textContent = t.inputHeader;
+        document.getElementById('proxy-input').placeholder = t.placeholder;
+        document.getElementById('help-text').innerHTML = ` < i class = "fas fa-info-circle" ></i> ${t.helpText}`;
             document.getElementById('error-msg-text').textContent = t.errorMsg;
             document.getElementById('output-header').textContent = t.outputHeader;
             document.getElementById('protocol-label').textContent = t.protocolLabel;
@@ -596,224 +234,256 @@
             document.getElementById('copy-result-btn').textContent = t.copyResultBtn;
             document.getElementById('curl-header').textContent = t.curlHeader;
             document.getElementById('copy-curl-btn').textContent = t.copyCurlBtn;
-            document.getElementById('format-title').innerHTML = `<i class="fas fa-lightbulb"></i> ${t.formatTitle}`;
-            document.getElementById('example1').textContent = t.example1;
-            document.getElementById('example2').textContent = t.example2;
-            document.getElementById('example3').textContent = t.example3;
-            document.getElementById('example4').textContent = t.example4;
-            document.getElementById('curl-tooltip').setAttribute('data-tooltip', t.curlTooltip);
-            document.getElementById('referral-corner').textContent = t.referralCorner;
-            document.getElementById('referral-title-black').textContent = t.referralTitleBlack;
-            document.getElementById('referral-title-blue').textContent = t.referralTitleBlue;
-            document.getElementById('referral-desc').innerHTML = t.referralDesc;
-            document.getElementById('referral-button').textContent = t.referralButton;
-            // 更新二维码模块翻译
-            document.getElementById("qr-section-title").textContent = t.qrSectionTitle;
-            document.getElementById("shadowrocket-qr-label").textContent = t.shadowrocketQRLabel;
-            document.getElementById("v2ray-qr-label").textContent = t.v2rayQRLabel;
-            
-            // 若已有解析结果，更新（调用 handleInput 再更新格式化文本及二维码）
-            const input = document.getElementById('proxy-input').value;
-            if(input.trim().length > 0) {
-                handleInput(input);
-            } else {
-                document.getElementById('formatted-text').textContent = '-';
-                document.getElementById('curl-command').textContent = '-';
-                document.getElementById("qr-section").style.display = "none";
-            }
+            document.getElementById('format-title').innerHTML = `<i class="fas fa-lightbulb"></i > $ {
+          t.formatTitle
+        }`;
+        document.getElementById('example1').textContent = t.example1;
+        document.getElementById('example2').textContent = t.example2;
+        document.getElementById('example3').textContent = t.example3;
+        document.getElementById('example4').textContent = t.example4;
+        document.getElementById('curl-tooltip').setAttribute('data-tooltip', t.curlTooltip);
+        document.getElementById('referral-corner').textContent = t.referralCorner;
+        document.getElementById('referral-title-black').textContent = t.referralTitleBlack;
+        document.getElementById('referral-title-blue').textContent = t.referralTitleBlue;
+        document.getElementById('referral-desc').innerHTML = t.referralDesc;
+        document.getElementById('referral-button').textContent = t.referralButton;
+        // 更新二维码模块翻译
+        document.getElementById("qr-section-title").textContent = t.qrSectionTitle;
+        document.getElementById("shadowrocket-qr-label").textContent = t.shadowrocketQRLabel;
+        document.getElementById("v2ray-qr-label").textContent = t.v2rayQRLabel;
+
+        // 若已有解析结果，更新（调用 handleInput 再更新格式化文本及二维码）
+        const input = document.getElementById('proxy-input').value;
+        if (input.trim().length > 0) {
+          handleInput(input);
+        } else {
+          document.getElementById('formatted-text').textContent = '-';
+          document.getElementById('curl-command').textContent = '-';
+          document.getElementById("qr-section").style.display = "none";
         }
+      }
 
-        // 设置语言
-        function setLanguage(lang) {
-            currentLang = lang;
-            document.getElementById('btn-zh').classList.toggle('active', lang==='zh');
-            document.getElementById('btn-en').classList.toggle('active', lang==='en');
-            updateUI();
+      // 设置语言
+      function setLanguage(lang) {
+        currentLang = lang;
+        document.getElementById('btn-zh').classList.toggle('active', lang === 'zh');
+        document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+        updateUI();
+      }
+
+      // 解析代理信息与生成二维码
+      function handleInput(input) {
+        const t = translations[currentLang];
+        const outputs = {
+          protocol: t.unknownProtocol,
+          host: '-',
+          port: '-',
+          username: '-',
+          password: '-'
+        };
+        const errorMsg = document.getElementById('error-msg');
+        input = input.trim();
+        let matched = false;
+        const patterns = [{
+          regex: /^(.*?):\/\/(.*?):(\d+):(.*?):(.*)$/,
+          handler: (match) = >{
+            outputs.protocol = match[1];
+            outputs.host = match[2];
+            outputs.port = match[3];
+            outputs.username = match[4];
+            outputs.password = match[5];
+          }
+        },
+        {
+          regex: /^(.*?):(\d+):(.*?):(.*)$/,
+          handler: (match) = >{
+            outputs.host = match[1];
+            outputs.port = match[2];
+            outputs.username = match[3];
+            outputs.password = match[4];
+          }
+        },
+        {
+          regex: /^(.*?):(.*?)@(.*?):(\d+)$/,
+          handler: (match) = >{
+            outputs.username = match[1];
+            outputs.password = match[2];
+            outputs.host = match[3];
+            outputs.port = match[4];
+          }
+        },
+        {
+          regex: /^(.*?):(.*?):(.*?):(\d+)$/,
+          handler: (match) = >{
+            outputs.username = match[1];
+            outputs.password = match[2];
+            outputs.host = match[3];
+            outputs.port = match[4];
+          }
+        },
+        {
+          regex: /^(.*?):(\d+)@(.*?):(.*)$/,
+          handler: (match) = >{
+            outputs.host = match[1];
+            outputs.port = match[2];
+            outputs.username = match[3];
+            outputs.password = match[4];
+          }
+        }];
+        for (let pattern of patterns) {
+          const match = input.match(pattern.regex);
+          if (match) {
+            pattern.handler(match);
+            matched = true;
+            break;
+          }
         }
-
-        // 解析代理信息与生成二维码
-        function handleInput(input) {
-            const t = translations[currentLang];
-            const outputs = {
-                protocol: t.unknownProtocol,
-                host: '-',
-                port: '-',
-                username: '-',
-                password: '-'
-            };
-            const errorMsg = document.getElementById('error-msg');
-            input = input.trim();
-            let matched = false;
-            const patterns = [
-                {
-                    regex: /^(.*?):\/\/(.*?):(\d+):(.*?):(.*)$/,
-                    handler: (match) => {
-                        outputs.protocol = match[1];
-                        outputs.host = match[2];
-                        outputs.port = match[3];
-                        outputs.username = match[4];
-                        outputs.password = match[5];
-                    }
-                },
-                {
-                    regex: /^(.*?):(\d+):(.*?):(.*)$/,
-                    handler: (match) => {
-                        outputs.host = match[1];
-                        outputs.port = match[2];
-                        outputs.username = match[3];
-                        outputs.password = match[4];
-                    }
-                },
-                {
-                    regex: /^(.*?):(.*?)@(.*?):(\d+)$/,
-                    handler: (match) => {
-                        outputs.username = match[1];
-                        outputs.password = match[2];
-                        outputs.host = match[3];
-                        outputs.port = match[4];
-                    }
-                },
-                {
-                    regex: /^(.*?):(.*?):(.*?):(\d+)$/,
-                    handler: (match) => {
-                        outputs.username = match[1];
-                        outputs.password = match[2];
-                        outputs.host = match[3];
-                        outputs.port = match[4];
-                    }
-                },
-                {
-                    regex: /^(.*?):(\d+)@(.*?):(.*)$/,
-                    handler: (match) => {
-                        outputs.host = match[1];
-                        outputs.port = match[2];
-                        outputs.username = match[3];
-                        outputs.password = match[4];
-                    }
-                }
-            ];
-            for (let pattern of patterns) {
-                const match = input.match(pattern.regex);
-                if (match) {
-                    pattern.handler(match);
-                    matched = true;
-                    break;
-                }
-            }
-            let curlCommand = '';
-            if (outputs.host !== '-' && outputs.port !== '-') {
-                const protocol = (outputs.protocol !== t.unknownProtocol ? outputs.protocol : 'http').toLowerCase();
-                if (protocol === 'socks5') {
-                    curlCommand = `curl -x "socks5h://${outputs.username !== '-' && outputs.password !== '-' ? `${outputs.username}:${outputs.password}@` : ''}${outputs.host}:${outputs.port}" ip-api.com`;
-                } else if (protocol === 'http' || protocol === 'https') {
-                    const auth = outputs.username !== '-' && outputs.password !== '-' ? `${outputs.username}:${outputs.password}@` : '';
-                    curlCommand = `curl -x "${protocol}://${auth}${outputs.host}:${outputs.port}" ip-api.com`;
-                } else {
-                    curlCommand = t.curlError;
-                }
-            } else {
-                curlCommand = t.curlEmpty;
-            }
-            const formatText = `${t.protocolLine}${outputs.protocol.toLowerCase()}\n${t.hostLine}${outputs.host}\n${t.portLine}${outputs.port}\n${t.usernameLine}${outputs.username}\n${t.passwordLine}${outputs.password}`;
-            document.getElementById('protocol').textContent = outputs.protocol.toLowerCase();
-            document.getElementById('host').textContent = outputs.host;
-            document.getElementById('port').textContent = outputs.port;
-            document.getElementById('username').textContent = outputs.username;
-            document.getElementById('password').textContent = outputs.password;
-            document.getElementById('formatted-text').textContent = formatText;
-            document.getElementById('curl-command').textContent = curlCommand;
-            if (input.length > 0 && !matched) {
-                errorMsg.style.display = 'flex';
-                document.querySelectorAll('.output-value').forEach(el => {
-                    el.style.color = '#ff4444';
-                });
-            } else {
-                errorMsg.style.display = 'none';
-                document.querySelectorAll('.output-value').forEach(el => {
-                    el.style.color = '#333';
-                });
-            }
-            // 仅当输入以 socks5:// 或 http:// 开头时生成二维码
-            generateQR();
+        let curlCommand = '';
+        if (outputs.host !== '-' && outputs.port !== '-') {
+          const protocol = (outputs.protocol !== t.unknownProtocol ? outputs.protocol: 'http').toLowerCase();
+          if (protocol === 'socks5') {
+            curlCommand = `curl - x "socks5h://${outputs.username !== '-' && outputs.password !== '-' ? `${outputs.username}:${outputs.password}@` : ''}${outputs.host}:${outputs.port}"ip - api.com`;
+          } else if (protocol === 'http' || protocol === 'https') {
+            const auth = outputs.username !== '-' && outputs.password !== '-' ? `$ {
+              outputs.username
+            }: $ {
+              outputs.password
+            }@`: '';
+            curlCommand = `curl - x "${protocol}://${auth}${outputs.host}:${outputs.port}"ip - api.com`;
+          } else {
+            curlCommand = t.curlError;
+          }
+        } else {
+          curlCommand = t.curlEmpty;
         }
-
-        // 实时生成二维码（当输入满足要求时显示二维码区域，否则隐藏）
-        function generateQR() {
-            let input = document.getElementById("proxy-input").value.trim();
-            if (!input) {
-                document.getElementById("qr-section").style.display = "none";
-                return;
-            }
-            let protocolInput = "";
-            let finalProtocol = "";
-            if (input.startsWith("socks5://")) {
-                protocolInput = "socks5://";
-                finalProtocol = "socks://";
-            } else if (input.startsWith("http://")) {
-                protocolInput = "http://";
-                finalProtocol = "http://";
-            } else {
-                document.getElementById("qr-section").style.display = "none";
-                return;
-            }
-            // 去除协议部分
-            input = input.substring(protocolInput.length);
-            let parts = input.split(":");
-            if (parts.length !== 4) {
-                document.getElementById("qr-section").style.display = "none";
-                return;
-            }
-            let host = parts[0],
-                port = parts[1],
-                username = parts[2],
-                password = parts[3];
-            // ShadowRocket：对 "用户名:密码@主机:端口" 进行 Base64 编码
-            let shadowrocketStr = username + ":" + password + "@" + host + ":" + port;
-            let shadowrocketEncoded = btoa(shadowrocketStr);
-            let shadowrocketQR = finalProtocol + shadowrocketEncoded;
-            // v2ray：仅对 "用户名:密码" 进行 Base64 编码，然后拼接明文的 "@主机:端口"
-            let v2rayStr = username + ":" + password;
-            let v2rayEncoded = btoa(v2rayStr);
-            let v2rayQR = finalProtocol + v2rayEncoded + "@" + host + ":" + port;
-            // 显示二维码区域
-            document.getElementById("qr-section").style.display = "block";
-            // 清空之前生成的二维码
-            document.getElementById("qrcode-shadowrocket").innerHTML = "";
-            document.getElementById("qrcode-v2ray").innerHTML = "";
-            document.getElementById("text-shadowrocket").innerText = shadowrocketQR;
-            document.getElementById("text-v2ray").innerText = v2rayQR;
-            new QRCode(document.getElementById("qrcode-shadowrocket"), {
-                text: shadowrocketQR,
-                width: 200,
-                height: 200,
-                correctLevel: QRCode.CorrectLevel.H
-            });
-            new QRCode(document.getElementById("qrcode-v2ray"), {
-                text: v2rayQR,
-                width: 200,
-                height: 200,
-                correctLevel: QRCode.CorrectLevel.H
-            });
-			setTimeout(function() {
-				let qrImages1 = document.querySelectorAll("#qrcode-shadowrocket img");
-				qrImages1.forEach(function(img) {
-					img.style.display = "block";
-					img.style.margin = "0 auto";
-				});
-
-				let qrImages2 = document.querySelectorAll("#qrcode-v2ray img");
-				qrImages2.forEach(function(img) {
-					img.style.display = "block";
-					img.style.margin = "0 auto";
-				});
-			}, 10);
+        const formatText = `$ {
+          t.protocolLine
         }
+        $ {
+          outputs.protocol.toLowerCase()
+        }\n$ {
+          t.hostLine
+        }
+        $ {
+          outputs.host
+        }\n$ {
+          t.portLine
+        }
+        $ {
+          outputs.port
+        }\n$ {
+          t.usernameLine
+        }
+        $ {
+          outputs.username
+        }\n$ {
+          t.passwordLine
+        }
+        $ {
+          outputs.password
+        }`;
+        document.getElementById('protocol').textContent = outputs.protocol.toLowerCase();
+        document.getElementById('host').textContent = outputs.host;
+        document.getElementById('port').textContent = outputs.port;
+        document.getElementById('username').textContent = outputs.username;
+        document.getElementById('password').textContent = outputs.password;
+        document.getElementById('formatted-text').textContent = formatText;
+        document.getElementById('curl-command').textContent = curlCommand;
+        if (input.length > 0 && !matched) {
+          errorMsg.style.display = 'flex';
+          document.querySelectorAll('.output-value').forEach(el = >{
+            el.style.color = '#ff4444';
+          });
+        } else {
+          errorMsg.style.display = 'none';
+          document.querySelectorAll('.output-value').forEach(el = >{
+            el.style.color = '#333';
+          });
+        }
+        // 仅当输入以 socks5:// 或 http:// 开头时生成二维码
+        generateQR();
+      }
 
-        function handleCopy(btn, text) {
-            const t = translations[currentLang];
-            const originalHTML = btn.innerHTML;
-            navigator.clipboard.writeText(text).then(() => {
-                btn.innerHTML = `<i class="fas fa-check"></i> ${t.copiedConfirmation}`;
+      // 实时生成二维码（当输入满足要求时显示二维码区域，否则隐藏）
+      function generateQR() {
+        let input = document.getElementById("proxy-input").value.trim();
+        if (!input) {
+          document.getElementById("qr-section").style.display = "none";
+          return;
+        }
+        let protocolInput = "";
+        let finalProtocol = "";
+        if (input.startsWith("socks5://")) {
+          protocolInput = "socks5://";
+          finalProtocol = "socks://";
+        } else if (input.startsWith("http://")) {
+          protocolInput = "http://";
+          finalProtocol = "http://";
+        } else {
+          document.getElementById("qr-section").style.display = "none";
+          return;
+        }
+        // 去除协议部分
+        input = input.substring(protocolInput.length);
+        let parts = input.split(":");
+        if (parts.length !== 4) {
+          document.getElementById("qr-section").style.display = "none";
+          return;
+        }
+        let host = parts[0],
+        port = parts[1],
+        username = parts[2],
+        password = parts[3];
+        // ShadowRocket：对 "用户名:密码@主机:端口" 进行 Base64 编码
+        let shadowrocketStr = username + ":" + password + "@" + host + ":" + port;
+        let shadowrocketEncoded = btoa(shadowrocketStr);
+        let shadowrocketQR = finalProtocol + shadowrocketEncoded;
+        // v2ray：仅对 "用户名:密码" 进行 Base64 编码，然后拼接明文的 "@主机:端口"
+        let v2rayStr = username + ":" + password;
+        let v2rayEncoded = btoa(v2rayStr);
+        let v2rayQR = finalProtocol + v2rayEncoded + "@" + host + ":" + port;
+        // 显示二维码区域
+        document.getElementById("qr-section").style.display = "block";
+        // 清空之前生成的二维码
+        document.getElementById("qrcode-shadowrocket").innerHTML = "";
+        document.getElementById("qrcode-v2ray").innerHTML = "";
+        document.getElementById("text-shadowrocket").innerText = shadowrocketQR;
+        document.getElementById("text-v2ray").innerText = v2rayQR;
+        new QRCode(document.getElementById("qrcode-shadowrocket"), {
+          text: shadowrocketQR,
+          width: 200,
+          height: 200,
+          correctLevel: QRCode.CorrectLevel.H
+        });
+        new QRCode(document.getElementById("qrcode-v2ray"), {
+          text: v2rayQR,
+          width: 200,
+          height: 200,
+          correctLevel: QRCode.CorrectLevel.H
+        });
+        setTimeout(function() {
+          let qrImages1 = document.querySelectorAll("#qrcode-shadowrocket img");
+          qrImages1.forEach(function(img) {
+            img.style.display = "block";
+            img.style.margin = "0 auto";
+            img.style.padding = "10px";
+          });
+
+          let qrImages2 = document.querySelectorAll("#qrcode-v2ray img");
+          qrImages2.forEach(function(img) {
+            img.style.display = "block";
+            img.style.margin = "0 auto";
+            img.style.padding = "10px";
+          });
+        },
+        10);
+      }
+
+      function handleCopy(btn, text) {
+        const t = translations[currentLang];
+        const originalHTML = btn.innerHTML;
+        navigator.clipboard.writeText(text).then(() = >{
+          btn.innerHTML = ` < i class = "fas fa-check" ></i> ${t.copiedConfirmation}`;
                 btn.classList.add('copied');
                 setTimeout(() => {
                     btn.innerHTML = originalHTML;
@@ -836,8 +506,7 @@
             handleCopy(btn, text);
         }
 
-        // 初始化界面
-        updateUI();
-    </script>
-</body>
+        / / 初始化界面updateUI();</script>
+  </body>
+
 </html>
