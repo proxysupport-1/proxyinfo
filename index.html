@@ -784,15 +784,15 @@
             document.getElementById("text-v2ray").innerText = v2rayQR;
             new QRCode(document.getElementById("qrcode-shadowrocket"), {
                 text: shadowrocketQR,
-                width: 200,
-                height: 200,
-                correctLevel: QRCode.CorrectLevel.H
+                width: 210,
+                height: 210,
+                correctLevel: QRCode.CorrectLevel.Q
             });
             new QRCode(document.getElementById("qrcode-v2ray"), {
                 text: v2rayQR,
-                width: 200,
-                height: 200,
-                correctLevel: QRCode.CorrectLevel.H
+                width: 210,
+                height: 210,
+                correctLevel: QRCode.CorrectLevel.Q
             });
 			setTimeout(function() {
 				let qrImages1 = document.querySelectorAll("#qrcode-shadowrocket img");
