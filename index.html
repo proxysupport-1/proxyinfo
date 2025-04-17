@@ -5,7 +5,7 @@
     <title>代理信息解析助手</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- 引入QRCode.js库 -->
-    <script src="./js/qrcode.min.js"></script>
+    <script src="https://proxysupport-1.github.io/proxyinfo/js/qrcode.min.js"></script>
     <style>
         :root { 
             --primary-color: #4CAF50; 
@@ -26,7 +26,6 @@
             padding: 30px;
             position: relative;
         }
-        /* 语言切换按钮 */
         #language-switcher {
             position: absolute;
             top: 15px;
@@ -45,7 +44,6 @@
         #language-switcher button.active {
             background: var(--primary-color);
         }
-        /* 标题居中 */
         .title {
             color: var(--primary-color);
             text-align: center;
@@ -112,7 +110,6 @@
             gap: 15px;
             margin-top: 20px;
         }
-        /* 输出区域采用左对齐 */
         .output-item {
             background: #f8f9fa;
             padding: 15px;
@@ -240,7 +237,6 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
             line-height: 1.6;
         }
-        /* 恢复推荐模块居中显示 */
         .referral-container {
             position: relative;
             margin-top: 30px;
@@ -321,27 +317,51 @@
             border-color: #239dfa;
             transform: translateY(-2px);
         }
+
         /* 二维码区域样式（输出区域左对齐） */
         #qr-section {
             margin-top: 30px;
             display: none;
             text-align: left;
         }
+        /* 二维码模糊和按钮样式 */
+        .qr-outer {
+            transition: filter 0.3s;
+            position: relative;
+        }
+        .qr-outer.blurred {
+            filter: blur(8px);
+            pointer-events: none;
+            user-select: none;
+        }
+		.qr-toggle-btn {
+			margin: 10px auto 0 auto;
+			background: #ff9800;
+			color: #fff;
+			border: none;
+			border-radius: 6px;
+			padding: 6px 16px;
+			cursor: pointer;
+			font-size: 14px;
+			transition: background 0.3s;
+			display: block;
+			text-align: center;
+		}
+		.qr-toggle-btn:hover {
+			background: #e65100;
+		}
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- 语言切换按钮 -->
         <div id="language-switcher">
             <button id="btn-zh" class="active" onclick="setLanguage('zh')">中文</button>
             <button id="btn-en" onclick="setLanguage('en')">English</button>
         </div>
-
         <h1 class="title">
             <i class="fas fa-tools"></i>
             <span id="page-title">代理信息解析助手</span>
         </h1>
-
         <div class="input-section">
             <div class="input-header">
                 <i class="fas fa-keyboard"></i>
@@ -359,8 +379,6 @@
                 <span id="error-msg-text">无法识别的格式，请检查输入是否正确</span>
             </div>
         </div>
-
-        <!-- 解析结果展示 -->
         <div class="output-section">
             <div class="input-header">
                 <i class="fas fa-file-signature"></i>
@@ -402,7 +420,6 @@
                     </div>
                     <div class="output-value" id="password">-</div>
                 </div>
-                
                 <div class="formatted-box">
                     <div class="input-header">
                         <i class="fa-solid fa-paste"></i>
@@ -416,12 +433,11 @@
                         </button>
                     </div>
                 </div>
-
                 <div class="formatted-box">
                     <div class="input-header">
                         <i class="fa-solid fa-paste"></i>
                         <h3 id="curl-header">CURL指令</h3>
-                        <i class="fas fa-question-circle help-icon" id="curl-tooltip" data-tooltip="CURL指令的使用方式： *Windows用户：按键盘Win+R键，输入CMD回车，在命令行粘贴指令 *苹果Mac用户：在启动台找到“终端”，在终端粘贴指令 （指令示例：curl -x \"协议://用户:密码@主机:端口\" URL）"></i>
+                        <i class="fas fa-question-circle help-icon" id="curl-tooltip" data-tooltip="CURL指令的使用方式： *Windows用户：按键盘Win+R键，输入CMD回车，在命令行粘贴指令 *苹果Mac用户：在启动台找到“终端”，在终端中粘贴指令并回车"></i>
                     </div>
                     <div class="formatted-content">
                         <div id="curl-command">-</div>
@@ -433,7 +449,6 @@
                 </div>
             </div>
         </div>
-
         <!-- 二维码展示区域 -->
         <div id="qr-section">
             <div class="input-header">
@@ -441,25 +456,32 @@
                 <h3 id="qr-section-title">二维码</h3>
             </div>
             <div class="output-grid">
+                <!-- ShadowRocket -->
                 <div class="output-item">
                     <div class="output-label">
                         <i class="fas fa-mobile"></i>
                         <span id="shadowrocket-qr-label">ShadowRocket二维码</span>
                     </div>
-                    <div id="qrcode-shadowrocket"></div>
-                    <div class="output-value" id="text-shadowrocket"></div>
+                    <div class="qr-outer" id="shadowrocket-qr-outer">
+                        <div id="qrcode-shadowrocket"></div>
+                        <div class="output-value" id="text-shadowrocket"></div>
+                    </div>
+                    <button class="qr-toggle-btn" id="toggle-shadowrocket" onclick="toggleQR('shadowrocket')">隐藏二维码</button>
                 </div>
+                <!-- v2ray -->
                 <div class="output-item">
                     <div class="output-label">
                         <i class="fas fa-mobile-alt"></i>
                         <span id="v2ray-qr-label">v2ray二维码</span>
                     </div>
-                    <div id="qrcode-v2ray"></div>
-                    <div class="output-value" id="text-v2ray"></div>
+                    <div class="qr-outer" id="v2ray-qr-outer">
+                        <div id="qrcode-v2ray"></div>
+                        <div class="output-value" id="text-v2ray"></div>
+                    </div>
+                    <button class="qr-toggle-btn" id="toggle-v2ray" onclick="toggleQR('v2ray')">隐藏二维码</button>
                 </div>
             </div>
         </div>
-        
         <div class="example-section">
             <div class="example-title" id="format-title">
                 <i class="fas fa-lightbulb"></i> 支持的格式示例：
@@ -469,7 +491,6 @@
             <div class="example-item" id="example3">127.0.0.1:8080@user:pass</div>
             <div class="example-item" id="example4">127.0.0.1:8080:user:pass</div>
         </div>
-        
         <div class="referral-container">
             <div class="referral-corner" id="referral-corner">推荐</div>
             <div class="referral-content">
@@ -486,9 +507,7 @@
                 </a>
             </div>
         </div>
-        
     </div>
-
     <script>
         // 翻译文本字典，新增二维码模块相关文本
         const translations = {
@@ -520,7 +539,7 @@
                 passwordLine: "密码: ",
                 curlError: "仅支持HTTP、HTTPS和Socks5协议",
                 curlEmpty: "请正确输入代理信息以生成测试命令",
-                curlTooltip: "CURL指令的使用方式： *Windows用户：按键盘Win+R键，输入CMD回车，在命令行粘贴指令 *苹果Mac用户：在启动台找到“终端”，在终端粘贴指令 （指令示例：curl -x \"协议://用户:密码@主机:端口\" URL）",
+                curlTooltip: "CURL指令的使用方式： *Windows用户：按键盘Win+R键，输入CMD回车，在命令行粘贴指令 *苹果Mac用户：在启动台找到“终端”，在终端中粘贴指令并回车",
                 referralCorner: "推荐",
                 referralTitleBlack: "稳定可靠的全球",
                 referralTitleBlue: "动静态代理IP",
@@ -530,7 +549,9 @@
                 copiedConfirmation: "已复制！",
                 qrSectionTitle: "二维码",
                 shadowrocketQRLabel: "ShadowRocket二维码",
-                v2rayQRLabel: "v2ray二维码"
+                v2rayQRLabel: "v2ray二维码",
+                hideQRBtn: "隐藏二维码",
+                showQRBtn: "显示二维码"
             },
             en: {
                 pageTitle: "Proxy Information Parsing Assistant",
@@ -560,7 +581,7 @@
                 passwordLine: "Password: ",
                 curlError: "Only supports HTTP, HTTPS, and SOCKS5 protocols",
                 curlEmpty: "Please input correct proxy information to generate a test command",
-                curlTooltip: "CURL Command Usage: * Windows users: Press Win+R, type CMD, and paste the command in the CMD. * macOS users: Open Terminal from Launchpad and paste the command. (Example: curl -x \"protocol://user:password@host:port\" URL)",
+                curlTooltip: "CURL Command Usage: * Windows users: Press Win+R, type CMD, and paste the command in the CMD. * macOS users: Open Terminal from Launchpad and paste the command. (Example: curl -x ...)",
                 referralCorner: "Recommended",
                 referralTitleBlack: "Secure and Dependable",
                 referralTitleBlue: "Global Proxy Service",
@@ -570,14 +591,17 @@
                 copiedConfirmation: "Copied!",
                 qrSectionTitle: "QR Codes",
                 shadowrocketQRLabel: "ShadowRocket QR",
-                v2rayQRLabel: "v2ray QR"
+                v2rayQRLabel: "v2ray QR",
+                hideQRBtn: "Hide QR",
+                showQRBtn: "Show QR"
             }
         };
 
-        // 当前语言，默认中文
         let currentLang = 'zh';
 
-        // 更新页面所有文本（包括二维码模块）
+        // 控制二维码显示/隐藏状态
+        const qrStates = { shadowrocket: true, v2ray: true };
+
         function updateUI() {
             const t = translations[currentLang];
             document.title = t.pageTitle;
@@ -607,12 +631,14 @@
             document.getElementById('referral-title-blue').textContent = t.referralTitleBlue;
             document.getElementById('referral-desc').innerHTML = t.referralDesc;
             document.getElementById('referral-button').textContent = t.referralButton;
-            // 更新二维码模块翻译
             document.getElementById("qr-section-title").textContent = t.qrSectionTitle;
             document.getElementById("shadowrocket-qr-label").textContent = t.shadowrocketQRLabel;
             document.getElementById("v2ray-qr-label").textContent = t.v2rayQRLabel;
-            
-            // 若已有解析结果，更新（调用 handleInput 再更新格式化文本及二维码）
+            // 更新二维码切换按钮文本
+            document.getElementById('toggle-shadowrocket').textContent = qrStates.shadowrocket ? t.hideQRBtn : t.showQRBtn;
+            document.getElementById('toggle-v2ray').textContent = qrStates.v2ray ? t.hideQRBtn : t.showQRBtn;
+
+            // 若已有解析结果，更新
             const input = document.getElementById('proxy-input').value;
             if(input.trim().length > 0) {
                 handleInput(input);
@@ -623,7 +649,6 @@
             }
         }
 
-        // 设置语言
         function setLanguage(lang) {
             currentLang = lang;
             document.getElementById('btn-zh').classList.toggle('active', lang==='zh');
@@ -631,7 +656,6 @@
             updateUI();
         }
 
-        // 解析代理信息与生成二维码
         function handleInput(input) {
             const t = translations[currentLang];
             const outputs = {
@@ -733,11 +757,9 @@
                     el.style.color = '#333';
                 });
             }
-            // 仅当输入以 socks5:// 或 http:// 开头时生成二维码
             generateQR();
         }
 
-        // 实时生成二维码（当输入满足要求时显示二维码区域，否则隐藏）
         function generateQR() {
             let input = document.getElementById("proxy-input").value.trim();
             if (!input) {
@@ -756,7 +778,6 @@
                 document.getElementById("qr-section").style.display = "none";
                 return;
             }
-            // 去除协议部分
             input = input.substring(protocolInput.length);
             let parts = input.split(":");
             if (parts.length !== 4) {
@@ -767,17 +788,13 @@
                 port = parts[1],
                 username = parts[2],
                 password = parts[3];
-            // ShadowRocket：对 "用户名:密码@主机:端口" 进行 Base64 编码
             let shadowrocketStr = username + ":" + password + "@" + host + ":" + port;
             let shadowrocketEncoded = btoa(shadowrocketStr);
             let shadowrocketQR = finalProtocol + shadowrocketEncoded;
-            // v2ray：仅对 "用户名:密码" 进行 Base64 编码，然后拼接明文的 "@主机:端口"
             let v2rayStr = username + ":" + password;
             let v2rayEncoded = btoa(v2rayStr);
             let v2rayQR = finalProtocol + v2rayEncoded + "@" + host + ":" + port;
-            // 显示二维码区域
             document.getElementById("qr-section").style.display = "block";
-            // 清空之前生成的二维码
             document.getElementById("qrcode-shadowrocket").innerHTML = "";
             document.getElementById("qrcode-v2ray").innerHTML = "";
             document.getElementById("text-shadowrocket").innerText = shadowrocketQR;
@@ -794,21 +811,37 @@
                 height: 210,
                 correctLevel: QRCode.CorrectLevel.Q
             });
-			setTimeout(function() {
-				let qrImages1 = document.querySelectorAll("#qrcode-shadowrocket img");
-				qrImages1.forEach(function(img) {
-					img.style.display = "block";
-					img.style.margin = "0 auto";
-					img.style.padding = "10px";
-				});
+            setTimeout(function() {
+                let qrImages1 = document.querySelectorAll("#qrcode-shadowrocket img");
+                qrImages1.forEach(function(img) {
+                    img.style.display = "block";
+                    img.style.margin = "0 auto";
+                    img.style.padding = "10px";
+                });
+                let qrImages2 = document.querySelectorAll("#qrcode-v2ray img");
+                qrImages2.forEach(function(img) {
+                    img.style.display = "block";
+                    img.style.margin = "0 auto";
+                    img.style.padding = "10px";
+                });
+            }, 10);
 
-				let qrImages2 = document.querySelectorAll("#qrcode-v2ray img");
-				qrImages2.forEach(function(img) {
-					img.style.display = "block";
-					img.style.margin = "0 auto";
-					img.style.padding = "10px";
-				});
-			}, 10);
+            // 保持二维码显示状态
+            document.getElementById("shadowrocket-qr-outer").classList.toggle('blurred', !qrStates.shadowrocket);
+            document.getElementById("v2ray-qr-outer").classList.toggle('blurred', !qrStates.v2ray);
+        }
+
+        function toggleQR(type) {
+            qrStates[type] = !qrStates[type];
+            const outer = document.getElementById(type + '-qr-outer');
+            const btn = document.getElementById('toggle-' + type);
+            if (!qrStates[type]) {
+                outer.classList.add('blurred');
+                btn.textContent = translations[currentLang].showQRBtn;
+            } else {
+                outer.classList.remove('blurred');
+                btn.textContent = translations[currentLang].hideQRBtn;
+            }
         }
 
         function handleCopy(btn, text) {
@@ -838,7 +871,6 @@
             handleCopy(btn, text);
         }
 
-        // 初始化界面
         updateUI();
     </script>
 </body>
