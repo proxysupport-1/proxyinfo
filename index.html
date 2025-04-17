@@ -5,7 +5,7 @@
     <title>代理信息解析助手</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- 引入QRCode.js库 -->
-    <script src="https://proxysupport-1.github.io/proxyinfo/js/qrcode.min.js"></script>
+    <script src="./js/qrcode.min.js"></script>
     <style>
         :root { 
             --primary-color: #4CAF50; 
@@ -317,14 +317,11 @@
             border-color: #239dfa;
             transform: translateY(-2px);
         }
-
-        /* 二维码区域样式（输出区域左对齐） */
         #qr-section {
             margin-top: 30px;
             display: none;
             text-align: left;
         }
-        /* 二维码模糊和按钮样式 */
         .qr-outer {
             transition: filter 0.3s;
             position: relative;
@@ -334,22 +331,22 @@
             pointer-events: none;
             user-select: none;
         }
-		.qr-toggle-btn {
-			margin: 10px auto 0 auto;
-			background: #ff9800;
-			color: #fff;
-			border: none;
-			border-radius: 6px;
-			padding: 6px 16px;
-			cursor: pointer;
-			font-size: 14px;
-			transition: background 0.3s;
-			display: block;
-			text-align: center;
-		}
-		.qr-toggle-btn:hover {
-			background: #e65100;
-		}
+        .qr-toggle-btn {
+            margin: 10px auto 0 auto;
+            background: #ff9800;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 6px 16px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+            display: block;
+            text-align: center;
+        }
+        .qr-toggle-btn:hover {
+            background: #e65100;
+        }
     </style>
 </head>
 <body>
@@ -466,7 +463,7 @@
                         <div id="qrcode-shadowrocket"></div>
                         <div class="output-value" id="text-shadowrocket"></div>
                     </div>
-                    <button class="qr-toggle-btn" id="toggle-shadowrocket" onclick="toggleQR('shadowrocket')">隐藏二维码</button>
+                    <button class="qr-toggle-btn" id="toggle-shadowrocket" onclick="toggleQR('shadowrocket')">显示二维码</button>
                 </div>
                 <!-- v2ray -->
                 <div class="output-item">
@@ -478,7 +475,7 @@
                         <div id="qrcode-v2ray"></div>
                         <div class="output-value" id="text-v2ray"></div>
                     </div>
-                    <button class="qr-toggle-btn" id="toggle-v2ray" onclick="toggleQR('v2ray')">隐藏二维码</button>
+                    <button class="qr-toggle-btn" id="toggle-v2ray" onclick="toggleQR('v2ray')">显示二维码</button>
                 </div>
             </div>
         </div>
@@ -597,10 +594,10 @@
             }
         };
 
-        let currentLang = 'zh';
+        // 默认二维码为隐藏
+        const qrStates = { shadowrocket: false, v2ray: false };
 
-        // 控制二维码显示/隐藏状态
-        const qrStates = { shadowrocket: true, v2ray: true };
+        let currentLang = 'zh';
 
         function updateUI() {
             const t = translations[currentLang];
@@ -637,7 +634,9 @@
             // 更新二维码切换按钮文本
             document.getElementById('toggle-shadowrocket').textContent = qrStates.shadowrocket ? t.hideQRBtn : t.showQRBtn;
             document.getElementById('toggle-v2ray').textContent = qrStates.v2ray ? t.hideQRBtn : t.showQRBtn;
-
+            // 重新渲染二维码区域的模糊状态
+            document.getElementById("shadowrocket-qr-outer").classList.toggle('blurred', !qrStates.shadowrocket);
+            document.getElementById("v2ray-qr-outer").classList.toggle('blurred', !qrStates.v2ray);
             // 若已有解析结果，更新
             const input = document.getElementById('proxy-input').value;
             if(input.trim().length > 0) {
