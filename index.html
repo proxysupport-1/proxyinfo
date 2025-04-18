@@ -434,7 +434,7 @@
                     <div class="input-header">
                         <i class="fa-solid fa-paste"></i>
                         <h3 id="curl-header">CURL指令</h3>
-                        <i class="fas fa-question-circle help-icon" id="curl-tooltip" data-tooltip="CURL指令的使用方式： *Windows用户：按键盘Win+R键，输入CMD回车，在命令行粘贴指令 *苹果Mac用户：在启动台找到“终端”，在终端中粘贴指令并回车"></i>
+                        <i class="fas fa-question-circle help-icon" id="curl-tooltip" data-tooltip="CURL指令的使用方式： *Windows用户：按键盘Win+R键，输入CMD回车，在命令行粘贴指令 *苹果Mac用户：在启动台找到“终端”，在终端[...]"></i>
                     </div>
                     <div class="formatted-content">
                         <div id="curl-command">-</div>
@@ -536,7 +536,7 @@
                 passwordLine: "密码: ",
                 curlError: "仅支持HTTP、HTTPS和Socks5协议",
                 curlEmpty: "请正确输入代理信息以生成测试命令",
-                curlTooltip: "CURL指令的使用方式： *Windows用户：按键盘Win+R键，输入CMD回车，在命令行粘贴指令 *苹果Mac用户：在启动台找到“终端”，在终端中粘贴指令并回车",
+                curlTooltip: "CURL指令的使用方式： *Windows用户：按键盘Win+R键，输入CMD回车，在命令行粘贴指令 *苹果Mac用户：在启动台找到“终端”，在终端[...]",
                 referralCorner: "推荐",
                 referralTitleBlack: "稳定可靠的全球",
                 referralTitleBlue: "动静态代理IP",
@@ -578,7 +578,7 @@
                 passwordLine: "Password: ",
                 curlError: "Only supports HTTP, HTTPS, and SOCKS5 protocols",
                 curlEmpty: "Please input correct proxy information to generate a test command",
-                curlTooltip: "CURL Command Usage: * Windows users: Press Win+R, type CMD, and paste the command in the CMD. * macOS users: Open Terminal from Launchpad and paste the command. (Example: curl -x ...)",
+                curlTooltip: "CURL Command Usage: * Windows users: Press Win+R, type CMD, and paste the command in the CMD. * macOS users: Open Terminal from Launchpad and paste the command. (Example:[...]",
                 referralCorner: "Recommended",
                 referralTitleBlack: "Secure and Dependable",
                 referralTitleBlue: "Global Proxy Service",
@@ -597,7 +597,18 @@
         // 默认二维码为隐藏
         const qrStates = { shadowrocket: false, v2ray: false };
 
-        let currentLang = 'zh';
+        // 浏览器语言识别逻辑：如果不是简体中文（zh-CN/zh）或繁体中文（zh-TW/zh-HK/zh-Hant），默认英语
+        function getDefaultLang() {
+            const navLang = (navigator.language || navigator.userLanguage || '').toLowerCase();
+            // 简体中文
+            if (navLang === 'zh-cn' || navLang === 'zh') return 'zh';
+            // 繁体中文
+            if (navLang === 'zh-tw' || navLang === 'zh-hk' || navLang === 'zh-hant') return 'zh';
+            // 其他默认英文
+            return 'en';
+        }
+
+        let currentLang = getDefaultLang();
 
         function updateUI() {
             const t = translations[currentLang];
@@ -646,6 +657,9 @@
                 document.getElementById('curl-command').textContent = '-';
                 document.getElementById("qr-section").style.display = "none";
             }
+            // 设置多语言按钮高亮
+            document.getElementById('btn-zh').classList.toggle('active', currentLang==='zh');
+            document.getElementById('btn-en').classList.toggle('active', currentLang==='en');
         }
 
         function setLanguage(lang) {
@@ -870,6 +884,7 @@
             handleCopy(btn, text);
         }
 
+        // 页面初始加载时自动根据浏览器语言设置
         updateUI();
     </script>
 </body>
