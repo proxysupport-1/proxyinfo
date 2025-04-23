@@ -5,348 +5,471 @@
     <title>代理信息解析助手</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- 引入QRCode.js库 -->
-    <script src="./js/qrcode.min.js"></script>
+    <script src="https://proxysupport-1.github.io/proxyinfo/js/qrcode.min.js"></script>
     <style>
-        :root { 
-            --primary-color: #4CAF50; 
-            --secondary-color: #2196F3; 
-            --code-color: #2c3e50;
-        }
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 30px;
-            background: #f0f8ff;
-        }
-        .container {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            padding: 30px;
-            position: relative;
-        }
-        #language-switcher {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-        }
-        #language-switcher button {
-            background: var(--secondary-color);
-            border: none;
-            color: #fff;
-            padding: 6px 12px;
-            margin-left: 5px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        #language-switcher button.active {
-            background: var(--primary-color);
-        }
-        .title {
-            color: var(--primary-color);
-            text-align: center;
-            margin-bottom: 30px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            justify-content: center;
-        }
-        .input-section {
-            margin-bottom: 30px;
-        }
-        .input-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 10px;
-            position: relative;
-        }
-        .help-text {
-            color: #666;
-            font-size: 0.9em;
-            margin: 10px 0;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 6px;
-            line-height: 1.6;
-        }
-        input[type="text"] {
-            width: calc(100% - 4px);
-            padding: 12px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            font-size: 16px;
-            transition: all 0.3s;
-            box-sizing: border-box;
-        }
-        input[type="text"]:focus {
-            border-color: var(--secondary-color);
-            outline: none;
-            box-shadow: 0 0 8px rgba(33,150,243,0.2);
-        }
-        .btn {
-            display: inline-block;
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            font-size: 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background 0.3s;
-            margin-top: 10px;
-        }
-        .btn:hover {
-            background: #388e3c;
-        }
-        .output-section {
-            margin-top: 25px;
-        }
-        .output-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin-top: 20px;
-        }
-        .output-item {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            border-left: 4px solid var(--primary-color);
-            text-align: left;
-        }
-        .output-label {
-            color: #666;
-            font-size: 0.9em;
-            margin-bottom: 5px;
-            text-align: left;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .output-value {
-            color: #333;
-            font-weight: 500;
-            font-size: 1.1em;
-            word-break: break-all;
-            text-align: left;
-        }
-        .error-message {
-            color: #ff4444;
-            padding: 10px;
-            background: #ffecec;
-            border-radius: 6px;
-            margin-top: 10px;
-            display: none;
-            text-align: left;
-        }
-        .example-section {
-            margin-top: 25px;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            text-align: left;
-        }
-        .example-title {
-            color: #666;
-            font-weight: bold;
-            margin-bottom: 10px;
-            text-align: left;
-        }
-        .example-item {
-            color: #444;
-            font-size: 0.9em;
-            margin: 8px 0;
-            padding-left: 10px;
-            border-left: 3px solid #ddd;
-            text-align: left;
-        }
-        .formatted-box {
-            grid-column: 1 / -1;
-            position: relative;
-            margin-top: 10px;
-        }
-        .formatted-content {
-            font-family: 'Courier New', monospace;
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid #ddd;
-            color: var(--code-color);
-            white-space: pre-wrap;
-            word-break: break-all;
-            position: relative;
-            padding-right: 120px;
-            text-align: left;
-        }
-        .copy-btn {
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: var(--secondary-color);
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        .copy-btn:hover {
-            background: #1976D2;
-        }
-        .copy-btn.copied {
-            background: var(--primary-color);
-            pointer-events: none;
-        }
-        #formatted-text, #curl-command {
-            margin: 0;
-            line-height: 1.5;
-            text-align: left;
-        }
-        .help-icon {
-            cursor: help;
-            color: #666;
-            font-size: 0.8em;
-            position: relative;
-            margin-left: 5px;
-            transition: all 0.2s;
-        }
-        .help-icon:hover {
-            color: var(--secondary-color);
-        }
-        .help-icon:hover::after {
-            content: attr(data-tooltip);
-            white-space: pre-wrap;
-            position: absolute;
-            background: rgba(0,0,0,0.8);
-            color: #fff;
-            backdrop-filter: blur(2px);
-            padding: 10px 15px;
-            border-radius: 6px;
-            font-size: 14px;
-            width: 480px;
-            left: 25px;
-            top: 0;
-            z-index: 1000;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            line-height: 1.6;
-        }
-        .referral-container {
-            position: relative;
-            margin-top: 30px;
-            padding: 25px 20px;
-            background: #ffffff;
-            border-radius: 12px;
-            border: 2px solid #239dfa;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            overflow: hidden;
-            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            background-image: url("./img/referralBg.png");
-            background-repeat: no-repeat, no-repeat;
-            background-position: right, left;
-            text-align: center;
-        }
-        .referral-container:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(35, 157, 250, 0.2);
-        }
-        .referral-corner {
-            position: absolute;
-            top: 10px;
-            right: -28px;
-            width: 90px;
-            height: 24px;
-            background: #239dfa;
-            color: white;
-            text-align: center;
-            line-height: 24px;
-            transform: rotate(45deg);
-            font-size: 12px;
-            font-weight: bold;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-            font-family: Arial, sans-serif;
-            letter-spacing: 1px;
-        }
-        .referral-content {
-            text-align: center;
-            line-height: 1.6;
-            position: relative;
-            z-index: 1;
-            padding: 5px;
-        }
-        .referral-title {
-            font-size: 1.5em;
-            font-weight: bold;
-            margin-bottom: 8px;
-            letter-spacing: 1px;
-            text-align: center;
-        }
-        .referral-title-black {
-            color: #19304a;
-        }
-        .referral-title-blue {
-            color: #239dfa;
-        }
-        .referral-desc {
-            color: #7f7f7f;
-            font-size: 0.95em;
-            margin-bottom: 15px;
-            padding: 0 15px;
-            text-align: center;
-        }
-        .referral-button {
-            display: inline-block;
-            background: #239dfa;
-            color: white;
-            padding: 10px 25px;
-            border-radius: 25px;
-            text-decoration: none;
-            font-weight: bold;
-            transition: all 0.3s;
-            border: 2px solid transparent;
-        }
-        .referral-button:hover {
-            background: white;
-            color: #239dfa;
-            border-color: #239dfa;
-            transform: translateY(-2px);
-        }
-        #qr-section {
-            margin-top: 30px;
-            display: none;
-            text-align: left;
-        }
-        .qr-outer {
-            transition: filter 0.3s;
-            position: relative;
-        }
-        .qr-outer.blurred {
-            filter: blur(8px);
-            pointer-events: none;
-            user-select: none;
-        }
-        .qr-toggle-btn {
-            margin: 10px auto 0 auto;
-            background: #ff9800;
-            color: #fff;
-            border: none;
-            border-radius: 6px;
-            padding: 6px 16px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: background 0.3s;
-            display: block;
-            text-align: center;
-        }
-        .qr-toggle-btn:hover {
-            background: #e65100;
-        }
+		:root { 
+			--primary-color: #4CAF50; 
+			--secondary-color: #2196F3; 
+			--icon-main: #1976D2;
+			--code-color: #2c3e50;
+		}
+
+		body { 
+			font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+			max-width: 800px;
+			margin: 20px auto;
+			padding: 30px;
+			background: linear-gradient(120deg, #f0f8ff 0%, #e3f0ff 100%);
+			min-height: 100vh;
+			transition: background 0.7s;
+		}
+		.container {
+			background: white;
+			border-radius: 16px;
+			box-shadow: 0 8px 32px rgba(0,0,0,0.14);
+			padding: 36px;
+			position: relative;
+			animation: fadeInUp 0.7s cubic-bezier(.23,1.02,.56,1.13);
+		}
+		@keyframes fadeInUp {
+			from { opacity: 0; transform: translateY(40px);}
+			to   { opacity: 1; transform: translateY(0);}
+		}
+		#language-switcher {
+			position: absolute;
+			top: 18px;
+			right: 18px;
+			z-index: 2;
+		}
+		#language-switcher button {
+			background: var(--secondary-color);
+			border: none;
+			color: #fff;
+			padding: 8px 16px;
+			margin-left: 5px;
+			border-radius: 6px;
+			cursor: pointer;
+			font-size: 15px;
+			outline: none;
+			transition: background 0.3s, box-shadow 0.35s;
+			box-shadow: 0 1px 4px rgba(33,150,243,0.08);
+		}
+		#language-switcher button.active {
+			background: var(--primary-color);
+			box-shadow: 0 3px 10px rgba(76,175,80,0.12);
+		}
+		.title {
+			color: var(--primary-color);
+			text-align: center;
+			margin-bottom: 34px;
+			display: flex;
+			align-items: center;
+			gap: 12px;
+			justify-content: center;
+			font-size: 2.3em;
+			letter-spacing: 2px;
+			font-weight: 700;
+			opacity: 0;
+			animation: fadeIn 1s 0.1s forwards;
+		}
+		@keyframes fadeIn {
+			to { opacity: 1;}
+		}
+		.input-section {
+			margin-bottom: 32px;
+		}
+		.input-header {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			margin-bottom: 12px;
+			position: relative;
+		}
+		.input-header i {
+			font-size: 1.2em;
+		}
+		.help-text {
+			color: #666;
+			font-size: 0.97em;
+			margin: 12px 0;
+			padding: 15px;
+			background: #f8f9fa;
+			border-radius: 8px;
+			line-height: 1.7;
+		}
+		input[type="text"] {
+			width: 100%;
+			padding: 14px;
+			border: 2px solid #ddd;
+			border-radius: 10px;
+			font-size: 17px;
+			transition: border-color 0.3s, box-shadow 0.4s, background 0.4s;
+			box-sizing: border-box;
+			background: #fff;
+		}
+		input[type="text"]:focus, input[type="text"]:hover {
+			border-color: var(--secondary-color);
+			outline: none;
+			box-shadow: 0 0 18px 0 rgba(30,34,45,0.14), 0 1px 4px rgba(33,150,243,0.11);
+			background: #f5fbff;
+		}
+
+		.btn {
+			display: inline-block;
+			background: var(--primary-color);
+			color: white;
+			border: none;
+			padding: 11px 22px;
+			font-size: 17px;
+			border-radius: 8px;
+			cursor: pointer;
+			transition: background 0.3s, box-shadow 0.27s;
+			margin-top: 12px;
+			box-shadow: 0 1px 6px rgba(76,175,80,0.08);
+		}
+		.btn:hover {
+			background: #388e3c;
+			box-shadow: 0 3px 14px rgba(33,150,243,0.09);
+		}
+
+		.output-section {
+			margin-top: 22px;
+		}
+		.output-grid {
+			display: grid;
+			grid-template-columns: repeat(2, 1fr);
+			gap: 16px;
+			margin-top: 22px;
+		}
+		.output-item {
+			background: #f8f9fa;
+			padding: 17px 15px;
+			border-radius: 10px;
+			border-left: 5px solid var(--primary-color);
+			text-align: left;
+			position: relative;
+			opacity: 0;
+			transform: translateY(30px);
+			animation: fadeInUp 0.6s cubic-bezier(.23,1.02,.56,1.13) forwards;
+			transition: box-shadow 0.27s, border-color 0.22s, background 0.19s, transform 0.18s;
+		}
+		.output-item:nth-child(1) { animation-delay: 0.12s;}
+		.output-item:nth-child(2) { animation-delay: 0.18s;}
+		.output-item:nth-child(3) { animation-delay: 0.22s;}
+		.output-item:nth-child(4) { animation-delay: 0.28s;}
+		.output-item:nth-child(5) { animation-delay: 0.32s;}
+		.output-item:hover {
+			box-shadow: 0 8px 28px rgba(25, 118, 210, 0.13);
+			border-left-color: var(--secondary-color);
+			transform: translateY(-2px) scale(1.015);
+			background: #e3f2fd;
+		}
+		.output-label {
+			color: #666;
+			font-size: 0.96em;
+			margin-bottom: 6px;
+			text-align: left;
+			display: flex;
+			align-items: center;
+			gap: 8px;
+			font-weight: 500;
+		}
+
+		.output-value {
+			color: #333;
+			font-weight: 500;
+			font-size: 1.08em;
+			word-break: break-all;
+			text-align: left;
+			transition: color 0.2s, background 0.18s;
+			background: none;
+		}
+		.output-item:hover {
+			background: #e3f2fd;
+		}
+
+		.error-message {
+			color: #ff4444;
+			padding: 10px;
+			background: #ffecec;
+			border-radius: 7px;
+			margin-top: 10px;
+			display: none;
+			text-align: left;
+			animation: shake 0.25s;
+		}
+		@keyframes shake {
+			10%, 90% { transform: translateX(-1px);}
+			20%, 80% { transform: translateX(2px);}
+			30%, 50%, 70% { transform: translateX(-3px);}
+			40%, 60% { transform: translateX(3px);}
+		}
+
+		.example-section {
+			margin-top: 28px;
+			padding: 16px;
+			background: #f8f9fa;
+			border-radius: 11px;
+			text-align: left;
+		}
+		.example-title {
+			color: #666;
+			font-weight: bold;
+			margin-bottom: 10px;
+			text-align: left;
+		}
+		.example-item {
+			color: #444;
+			font-size: 0.98em;
+			margin: 8px 0;
+			padding-left: 13px;
+			border-left: 3px solid #ddd;
+			text-align: left;
+			transition: background 0.2s, color 0.2s, border-color 0.2s, transform 0.16s;
+		}
+		.example-item:hover {
+			background: #e3f2fd;
+			border-left-color: var(--icon-main);
+			color: var(--icon-main);
+			transform: translateX(3px) scale(1.01);
+		}
+
+		.formatted-box {
+			grid-column: 1 / -1;
+			position: relative;
+			margin-top: 10px;
+			animation: fadeInUp 0.4s cubic-bezier(.23,1.02,.56,1.13);
+			transition: box-shadow 0.27s, border-color 0.22s, background 0.19s, transform 0.18s;
+		}
+		.formatted-box:hover .formatted-content {
+			box-shadow: 0 6px 16px rgba(25,118,210,0.09);
+			border-color: var(--secondary-color);
+			background: #e3f2fd;
+		}
+		.formatted-content {
+			font-family: 'Fira Mono', 'Courier New', monospace;
+			background: #f8f9fa;
+			padding: 16px;
+			border-radius: 10px;
+			border: 1px solid #ddd;
+			color: var(--code-color);
+			white-space: pre-wrap;
+			word-break: break-all;
+			position: relative;
+			padding-right: 120px;
+			text-align: left;
+			font-size: 1.02em;
+			transition: box-shadow 0.27s, border-color 0.22s, background 0.19s;
+		}
+
+		/* 统一按钮动效，修复复制按钮问题 */
+		.copy-btn,
+		.qr-toggle-btn {
+			border: none;
+			border-radius: 7px;
+			cursor: pointer;
+			font-size: 1em;
+			display: flex;
+			align-items: center;
+			gap: 7px;
+			z-index: 1;
+			transition: background 0.3s, box-shadow 0.22s, filter 0.2s, transform 0.17s;
+		}
+		.copy-btn {
+			position: absolute;
+			right: 18px;
+			top: 50%;
+			transform: translateY(-50%);
+			background: var(--secondary-color);
+			color: white;
+			padding: 8px 18px;
+		}
+		.qr-toggle-btn {
+			margin: 11px auto 0 auto;
+			background: #ff9800;
+			color: #fff;
+			padding: 8px 20px;
+			display: block;
+			text-align: center;
+			box-shadow: 0 1px 7px rgba(255,152,0,0.07);
+		}
+		.copy-btn:hover,
+		.qr-toggle-btn:hover {
+			filter: brightness(1.07) drop-shadow(0 2px 10px #1976d244);
+
+			box-shadow: 0 4px 14px rgba(30,34,45,0.18);
+		}
+		.copy-btn:hover {
+			background: #1976D2;
+		}
+		.qr-toggle-btn:hover {
+			background: #e65100;
+		}
+		.copy-btn.copied {
+			background: var(--primary-color);
+			pointer-events: none;
+			animation: btnFloat 0.14s;
+		}
+		@keyframes btnFloat {
+			0%   { transform: translateY(-50%) scale(1);}
+			50%  { transform: translateY(-53%) scale(1.02);}
+			100% { transform: translateY(-50%) scale(1);}
+		}
+
+		#formatted-text, #curl-command {
+			margin: 0;
+			line-height: 1.6;
+			text-align: left;
+		}
+
+		/* 优化后的 help-icon tooltip 样式 */
+		.help-icon {
+			cursor: help;
+			color: var(--icon-main);
+			font-size: 0.89em;
+			position: relative;
+			margin-left: 6px;
+			transition: all 0.2s;
+		}
+		.help-icon:hover {
+			color: var(--secondary-color);
+		}
+		.help-icon:hover::after {
+			content: attr(data-tooltip);
+			white-space: pre-line;
+			position: absolute;
+			background: rgba(30,34,45,0.97);
+			color: #fafeff;
+			font-family: 'Segoe UI', 'Helvetica Neue', Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+			font-size: 15px;
+			line-height: 1.7;
+			font-weight: 400;
+			max-width: 450px;
+			min-width: 450px;
+			padding: 16px 22px;
+			border-radius: 12px;
+			left: 28px;
+			top: 0;
+			z-index: 1003;
+			box-shadow: 0 8px 32px rgba(40,40,40,0.32), 0 1.5px 8px rgba(0,0,0,0.16);
+			border: 1.5px solid #333;
+			pointer-events: none;
+			transition: box-shadow 0.22s, background 0.18s;
+			text-align: left;
+			overflow-wrap: break-word;
+			word-break: break-word;
+		}
+		@media (max-width: 600px) {
+			.help-icon:hover::after {
+				left: 0;
+				top: 32px;
+				min-width: 160px;
+				max-width: 98vw;
+				font-size: 14px;
+				padding: 14px 10px;
+			}
+		}
+
+		.referral-container {
+			position: relative;
+			margin-top: 34px;
+			padding: 28px 20px;
+			background: #ffffff;
+			border-radius: 18px;
+			border: 2px solid var(--icon-main);
+			box-shadow: 0 2px 10px rgba(0,0,0,0.10);
+			overflow: hidden;
+			background-image: url("./img/referralBg.png");
+			background-repeat: no-repeat, no-repeat;
+			background-position: right, left;
+			text-align: center;
+			transition: box-shadow 0.37s, transform 0.27s, background 0.19s, border-color 0.22s;
+		}
+		.referral-container:hover {
+			box-shadow: 0 10px 32px rgba(35, 157, 250, 0.24);
+			border-color: var(--icon-main);
+			background: #f4fbff;
+			transform: translateY(-7px) scale(1.025);
+		}
+		.referral-corner {
+			position: absolute;
+			top: 10px;
+			right: -28px;
+			width: 94px;
+			height: 26px;
+			background: var(--icon-main);
+			color: white;
+			text-align: center;
+			line-height: 26px;
+			transform: rotate(45deg);
+			font-size: 13px;
+			font-weight: bold;
+			box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+			font-family: Arial, sans-serif;
+			letter-spacing: 1px;
+		}
+		.referral-content {
+			text-align: center;
+			line-height: 1.7;
+			position: relative;
+			z-index: 1;
+			padding: 9px;
+		}
+		.referral-title {
+			font-size: 1.5em;
+			font-weight: bold;
+			margin-bottom: 8px;
+			letter-spacing: 1px;
+			text-align: center;
+		}
+		.referral-title-black {
+			color: #19304a;
+		}
+		.referral-title-blue {
+			color: #239dfa;
+		}
+		.referral-desc {
+			color: #7f7f7f;
+			font-size: 0.99em;
+			margin-bottom: 15px;
+			padding: 0 15px;
+			text-align: center;
+		}
+		.referral-button {
+			display: inline-block;
+			background: #239dfa;
+			color: white;
+			padding: 12px 28px;
+			border-radius: 25px;
+			text-decoration: none;
+			font-weight: bold;
+			font-size: 1.07em;
+			transition: all 0.3s;
+			border: 2px solid transparent;
+			margin-top: 4px;
+		}
+		.referral-button:hover {
+			background: white;
+			color: #239dfa;
+			border-color: #239dfa;
+			transform: translateY(-2px) scale(1.04);
+		}
+		#qr-section {
+			margin-top: 32px;
+			display: none;
+			text-align: left;
+			animation: fadeInUp 0.8s;
+		}
+		.qr-outer {
+			transition: filter 0.3s, opacity 0.4s;
+			position: relative;
+		}
+		.qr-outer.blurred {
+			filter: blur(8px) grayscale(0.3);
+			pointer-events: none;
+			user-select: none;
+			opacity: 0.5;
+		}
     </style>
 </head>
 <body>
@@ -434,7 +557,15 @@
                     <div class="input-header">
                         <i class="fa-solid fa-paste"></i>
                         <h3 id="curl-header">CURL指令</h3>
-                        <i class="fas fa-question-circle help-icon" id="curl-tooltip" data-tooltip="CURL指令的使用方式： *Windows用户：按键盘Win+R键，输入CMD回车，在命令行粘贴指令 *苹果Mac用户：在启动台找到“终端”，在终端粘贴指令 （指令示例：curl -x \"协议://用户:密码@主机:端口\" URL）"></i>
+                        <i class="fas fa-question-circle help-icon" id="curl-tooltip" data-tooltip="【CURL指令使用方式】
+- Windows用户：按 Win+R，输入 CMD 回车，在命令行粘贴指令
+- Mac用户：在“启动台”打开“终端”，粘贴指令
+
+示例：
+curl -x &quot;协议://用户名:密码@主机:端口&quot; URL
+
+如：curl -x &quot;socks5://user:pass@127.0.0.1:8080&quot; ip-api.com
+"></i>
                     </div>
                     <div class="formatted-content">
                         <div id="curl-command">-</div>
@@ -463,7 +594,10 @@
                         <div id="qrcode-shadowrocket"></div>
                         <div class="output-value" id="text-shadowrocket"></div>
                     </div>
-                    <button class="qr-toggle-btn" id="toggle-shadowrocket" onclick="toggleQR('shadowrocket')">显示二维码</button>
+                    <button class="qr-toggle-btn" id="toggle-shadowrocket" onclick="toggleQR('shadowrocket')">
+                        <i class="fas fa-eye" id="toggle-shadowrocket-icon" style="margin-right:3px;"></i>
+                        <span id="toggle-shadowrocket-text">显示二维码</span>
+                    </button>
                 </div>
                 <!-- v2ray -->
                 <div class="output-item">
@@ -475,7 +609,10 @@
                         <div id="qrcode-v2ray"></div>
                         <div class="output-value" id="text-v2ray"></div>
                     </div>
-                    <button class="qr-toggle-btn" id="toggle-v2ray" onclick="toggleQR('v2ray')">显示二维码</button>
+                    <button class="qr-toggle-btn" id="toggle-v2ray" onclick="toggleQR('v2ray')">
+                        <i class="fas fa-eye" id="toggle-v2ray-icon" style="margin-right:3px;"></i>
+                        <span id="toggle-v2ray-text">显示二维码</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -506,6 +643,14 @@
         </div>
     </div>
     <script>
+        // 动效增强：为输出值添加动画
+        function animateOutputValue(id) {
+            const el = document.getElementById(id);
+            el.classList.remove('animated');
+            void el.offsetWidth;
+            el.classList.add('animated');
+        }
+
         // 翻译文本字典，新增二维码模块相关文本
         const translations = {
             zh: { 
@@ -536,7 +681,14 @@
                 passwordLine: "密码: ",
                 curlError: "仅支持HTTP、HTTPS和Socks5协议",
                 curlEmpty: "请正确输入代理信息以生成测试命令",
-                curlTooltip: "CURL指令的使用方式： *Windows用户：按键盘Win+R键，输入CMD回车，在命令行粘贴指令 *苹果Mac用户：在启动台找到“终端”，在终端粘贴指令 （指令示例：curl -x \"协议://用户:密码@主机:端口\" URL）",
+                curlTooltip: `【CURL指令使用方式】
+- Windows用户：按 Win+R，输入 CMD 回车，在命令行粘贴指令
+- Mac用户：在“启动台”打开“终端”，粘贴指令
+
+示例：
+curl -x "协议://用户名:密码@主机:端口" URL
+
+如：curl -x "socks5://user:pass@127.0.0.1:8080" ip-api.com`,
                 referralCorner: "推荐",
                 referralTitleBlack: "稳定可靠的全球",
                 referralTitleBlue: "动静态代理IP",
@@ -578,7 +730,15 @@
                 passwordLine: "Password: ",
                 curlError: "Only supports HTTP, HTTPS, and SOCKS5 protocols",
                 curlEmpty: "Please input correct proxy information to generate a test command",
-                curlTooltip: "CURL Command Usage: * Windows users: Press Win+R, type CMD, and paste the command in the CMD. * macOS users: Open Terminal from Launchpad and paste the command. (Example: curl -x \"protocol://user:password@host:port\" URL)",
+                curlTooltip: `【CURL Command Usage】
+- Windows users: Press Win+R, type CMD, and paste the command in the CMD.
+- macOS users: Open Terminal from Launchpad and paste the command.
+
+Example:
+curl -x "protocol://user:password@host:port" URL
+
+e.g. curl -x "socks5://user:pass@127.0.0.1:8080" ip-api.com
+`,
                 referralCorner: "Recommended",
                 referralTitleBlack: "Secure and Dependable",
                 referralTitleBlue: "Global Proxy Service",
@@ -597,14 +757,10 @@
         // 默认二维码为隐藏
         const qrStates = { shadowrocket: false, v2ray: false };
 
-        // 浏览器语言识别逻辑：如果不是简体中文（zh-CN/zh）或繁体中文（zh-TW/zh-HK/zh-Hant），默认英语
         function getDefaultLang() {
             const navLang = (navigator.language || navigator.userLanguage || '').toLowerCase();
-            // 简体中文
             if (navLang === 'zh-cn' || navLang === 'zh') return 'zh';
-            // 繁体中文
             if (navLang === 'zh-tw' || navLang === 'zh-hk' || navLang === 'zh-hant') return 'zh';
-            // 其他默认英文
             return 'en';
         }
 
@@ -642,13 +798,13 @@
             document.getElementById("qr-section-title").textContent = t.qrSectionTitle;
             document.getElementById("shadowrocket-qr-label").textContent = t.shadowrocketQRLabel;
             document.getElementById("v2ray-qr-label").textContent = t.v2rayQRLabel;
-            // 更新二维码切换按钮文本
-            document.getElementById('toggle-shadowrocket').textContent = qrStates.shadowrocket ? t.hideQRBtn : t.showQRBtn;
-            document.getElementById('toggle-v2ray').textContent = qrStates.v2ray ? t.hideQRBtn : t.showQRBtn;
-            // 重新渲染二维码区域的模糊状态
+            document.getElementById('toggle-shadowrocket-text').textContent = qrStates.shadowrocket ? t.hideQRBtn : t.showQRBtn;
+            document.getElementById('toggle-v2ray-text').textContent = qrStates.v2ray ? t.hideQRBtn : t.showQRBtn;
+            // 同步按钮图标
+            document.getElementById('toggle-shadowrocket-icon').className = qrStates.shadowrocket ? "fas fa-eye-slash" : "fas fa-eye";
+            document.getElementById('toggle-v2ray-icon').className = qrStates.v2ray ? "fas fa-eye-slash" : "fas fa-eye";
             document.getElementById("shadowrocket-qr-outer").classList.toggle('blurred', !qrStates.shadowrocket);
             document.getElementById("v2ray-qr-outer").classList.toggle('blurred', !qrStates.v2ray);
-            // 若已有解析结果，更新
             const input = document.getElementById('proxy-input').value;
             if(input.trim().length > 0) {
                 handleInput(input);
@@ -657,7 +813,6 @@
                 document.getElementById('curl-command').textContent = '-';
                 document.getElementById("qr-section").style.display = "none";
             }
-            // 设置多语言按钮高亮
             document.getElementById('btn-zh').classList.toggle('active', currentLang==='zh');
             document.getElementById('btn-en').classList.toggle('active', currentLang==='en');
         }
@@ -759,6 +914,11 @@
             document.getElementById('password').textContent = outputs.password;
             document.getElementById('formatted-text').textContent = formatText;
             document.getElementById('curl-command').textContent = curlCommand;
+            animateOutputValue('protocol');
+            animateOutputValue('host');
+            animateOutputValue('port');
+            animateOutputValue('username');
+            animateOutputValue('password');
             if (input.length > 0 && !matched) {
                 errorMsg.style.display = 'flex';
                 document.querySelectorAll('.output-value').forEach(el => {
@@ -830,30 +990,39 @@
                     img.style.display = "block";
                     img.style.margin = "0 auto";
                     img.style.padding = "10px";
+                    img.style.transition = "box-shadow 0.4s";
+                    img.onmouseenter = () => img.style.boxShadow = "0 6px 24px #33333333";
+                    img.onmouseleave = () => img.style.boxShadow = "";
                 });
                 let qrImages2 = document.querySelectorAll("#qrcode-v2ray img");
                 qrImages2.forEach(function(img) {
                     img.style.display = "block";
                     img.style.margin = "0 auto";
                     img.style.padding = "10px";
+                    img.style.transition = "box-shadow 0.4s";
+                    img.onmouseenter = () => img.style.boxShadow = "0 6px 24px #33333333";
+                    img.onmouseleave = () => img.style.boxShadow = "";
                 });
             }, 10);
 
-            // 保持二维码显示状态
             document.getElementById("shadowrocket-qr-outer").classList.toggle('blurred', !qrStates.shadowrocket);
             document.getElementById("v2ray-qr-outer").classList.toggle('blurred', !qrStates.v2ray);
         }
 
         function toggleQR(type) {
             qrStates[type] = !qrStates[type];
+            const t = translations[currentLang];
             const outer = document.getElementById(type + '-qr-outer');
-            const btn = document.getElementById('toggle-' + type);
+            const textElem = document.getElementById('toggle-' + type + '-text');
+            const iconElem = document.getElementById('toggle-' + type + '-icon');
             if (!qrStates[type]) {
                 outer.classList.add('blurred');
-                btn.textContent = translations[currentLang].showQRBtn;
+                textElem.textContent = t.showQRBtn;
+                if (iconElem) iconElem.className = "fas fa-eye";
             } else {
                 outer.classList.remove('blurred');
-                btn.textContent = translations[currentLang].hideQRBtn;
+                textElem.textContent = t.hideQRBtn;
+                if (iconElem) iconElem.className = "fas fa-eye-slash";
             }
         }
 
