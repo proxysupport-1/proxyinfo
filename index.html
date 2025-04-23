@@ -376,20 +376,22 @@
 			padding: 28px 20px;
 			background: #ffffff;
 			border-radius: 18px;
-			border: 2px solid var(--icon-main);
+			border: 2px solid var(--secondary-color);
 			box-shadow: 0 2px 10px rgba(0,0,0,0.10);
 			overflow: hidden;
-			background-image: url("./img/referralBg.png");
+			/* 闪现修复：使用半透明渐变+图片，图片放最上面且渐变始终在下方，且不要在hover时切换background, 只切换box-shadow/border-color */
+			background-image: linear-gradient(90deg, #f4fbff 0%, #ffffff 100%), url("./img/referralBg.png");
 			background-repeat: no-repeat, no-repeat;
 			background-position: right, left;
+			background-size: cover, auto;
 			text-align: center;
-			transition: box-shadow 0.37s, transform 0.27s, background 0.19s, border-color 0.22s;
+			transition: box-shadow 0.37s, transform 0.27s, border-color 0.22s;
 		}
 		.referral-container:hover {
 			box-shadow: 0 10px 32px rgba(35, 157, 250, 0.24);
-			border-color: var(--icon-main);
-			background: #f4fbff;
+			border-color: var(--secondary-color);
 			transform: translateY(-7px) scale(1.025);
+			/* 不再切换background，防止图片闪现 */
 		}
 		.referral-corner {
 			position: absolute;
@@ -397,7 +399,7 @@
 			right: -28px;
 			width: 94px;
 			height: 26px;
-			background: var(--icon-main);
+			background: var(--secondary-color);
 			color: white;
 			text-align: center;
 			line-height: 26px;
