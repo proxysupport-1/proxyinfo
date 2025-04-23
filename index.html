@@ -379,8 +379,7 @@
 			border: 2px solid var(--secondary-color);
 			box-shadow: 0 2px 10px rgba(0,0,0,0.10);
 			overflow: hidden;
-			/* 闪现修复：使用半透明渐变+图片，图片放最上面且渐变始终在下方，且不要在hover时切换background, 只切换box-shadow/border-color */
-			background-image: linear-gradient(90deg, #f4fbff 0%, #ffffff 100%), url("./img/referralBg.png");
+			background-image: url("./img/referralBg.png");
 			background-repeat: no-repeat, no-repeat;
 			background-position: right, left;
 			background-size: cover, auto;
