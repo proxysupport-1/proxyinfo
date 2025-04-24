@@ -254,6 +254,15 @@
             font-size: 1.02em;
             transition: box-shadow 0.27s, border-color 0.22s, background 0.19s;
         }
+        .qr-output-value {
+            color: #333;
+            font-weight: 500;
+            font-size: 1.08em;
+            word-break: break-all;
+            text-align: center;
+            transition: color 0.2s, background 0.18s;
+            background: none;
+        }
         .copy-btn,
         .qr-toggle-btn {
             border: none;
@@ -802,7 +811,7 @@ curl -x &quot;协议://用户名:密码@主机:端口&quot; URL
                     </div>
                     <div class="qr-outer" id="shadowrocket-qr-outer">
                         <div id="qrcode-shadowrocket"></div>
-                        <div class="output-value" id="text-shadowrocket"></div>
+                        <div class="qr-output-value" id="text-shadowrocket"></div>
                     </div>
                     <button class="qr-toggle-btn" id="toggle-shadowrocket" onclick="toggleQR('shadowrocket')">
                         <i class="fas fa-eye" id="toggle-shadowrocket-icon" style="margin-right:3px;"></i>
@@ -817,7 +826,7 @@ curl -x &quot;协议://用户名:密码@主机:端口&quot; URL
                     </div>
                     <div class="qr-outer" id="v2ray-qr-outer">
                         <div id="qrcode-v2ray"></div>
-                        <div class="output-value" id="text-v2ray"></div>
+                        <div class="qr-output-value" id="text-v2ray"></div>
                     </div>
                     <button class="qr-toggle-btn" id="toggle-v2ray" onclick="toggleQR('v2ray')">
                         <i class="fas fa-eye" id="toggle-v2ray-icon" style="margin-right:3px;"></i>
@@ -1116,12 +1125,12 @@ e.g. curl -x "socks5://user:pass@127.0.0.1:8080" ip-api.com
             animateOutputValue('password');
             if (input.length > 0 && !matched) {
                 errorMsg.style.display = 'flex';
-                document.querySelectorAll('.output-value').forEach(el => {
+                document.querySelectorAll('.qr-output-value').forEach(el => {
                     el.style.color = '#ff4444';
                 });
             } else {
                 errorMsg.style.display = 'none';
-                document.querySelectorAll('.output-value').forEach(el => {
+                document.querySelectorAll('.qr-output-value').forEach(el => {
                     el.style.color = '#333';
                 });
             }
