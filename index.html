@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <title>代理信息解析助手</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <!-- 引入QRCode.js库 -->
     <script src="https://proxysupport-1.github.io/proxyinfo/js/qrcode.min.js"></script>
     <style>
         :root { 
@@ -40,7 +39,7 @@
             right: 18px;
             z-index: 2;
             display: flex;
-            gap: 8px; /* 按钮间距 */
+            gap: 8px;
         }
         #language-switcher button {
             background: var(--secondary-color);
@@ -53,12 +52,12 @@
             outline: none;
             transition: background 0.3s, box-shadow 0.35s;
             box-shadow: 0 1px 4px rgba(33,150,243,0.08);
-            display: flex;         /* 保证按钮内容居中 */
-            align-items: center;   /* 垂直居中 */
-            justify-content: center; /* 水平居中 */
-            min-width: 80px;       /* 统一宽度 */
-            height: 35px;          /* 统一高度 */
-            box-sizing: border-box; /* 避免内边距影响大小 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 80px;
+            height: 35px;
+            box-sizing: border-box;
         }
         #language-switcher button.active {
             background: var(--primary-color);
@@ -259,7 +258,7 @@
             white-space: pre-wrap;
             word-break: break-all;
             position: relative;
-            padding-bottom: 32px; /* 为底部按钮留空间 */
+            padding-bottom: 32px;
             text-align: left;
             font-size: 1.02em;
             transition: box-shadow 0.27s, border-color 0.22s, background 0.19s;
@@ -290,11 +289,11 @@
 			right: 0;
 			bottom: 0;
 			width: 100%;
-			border-radius: 0 0 8px 8px;  /* 调小圆角 */
+			border-radius: 0 0 8px 8px;
 			background: var(--secondary-color);
 			color: white;
-			padding: 7px 0;              /* 调小高度 */
-			font-size: 0.90em;           /* 调小字体 */
+			padding: 7px 0;
+			font-size: 0.90em;
 			text-align: center;
 			justify-content: center;
 			display: flex;
@@ -488,7 +487,7 @@
                 border-radius: 16px;
             }
             .title {
-                font-size: 1.9em; /* 调整字体大小 */
+                font-size: 1.9em;
                 margin-top: 38px;
                 margin-bottom: 20px;
                 gap: 10px;
@@ -497,46 +496,46 @@
                 position: static;
                 display: flex;
                 justify-content: center;
-                gap: 10px; /* 调整按钮间距 */
+                gap: 10px;
             }
             .input-section,
             .output-section,
             .referral-container {
                 margin-top: 20px;
                 margin-bottom: 20px;
-                padding: 16px 8px; /* 增加内边距 */
+                padding: 16px 8px;
                 border-radius: 16px;
             }
             .output-grid {
-                grid-template-columns: 1fr; /* 改为单列布局 */
-                gap: 14px; /* 增加间距 */
+                grid-template-columns: 1fr;
+                gap: 14px;
             }
             .output-item {
-                padding: 12px 10px; /* 调整内边距 */
-                border-radius: 16px; /* 保持圆角一致 */
+                padding: 12px 10px;
+                border-radius: 16px;
             }
             .qr-outer img {
-                max-width: 90vw; /* 限制最大宽度 */
-                height: auto; /* 保持纵横比 */
-                padding: 10px; /* 增加边距 */
-                border-radius: 8px; /* 增加圆角 */
+                max-width: 90vw;
+                height: auto;
+                padding: 10px;
+                border-radius: 8px;
             }
             .formatted-box {
                 margin-top: 14px;
                 border-radius: 16px;
             }
             .formatted-content {
-                padding: 14px 4vw 52px 14px; /* 调整内边距 */
+                padding: 14px 4vw 52px 14px;
                 font-size: 1em;
                 border-radius: 16px;
             }
             .copy-btn {
                 font-size: 1em;
                 border-radius: 0 0 15px 15px;
-                padding: 12px 0; /* 调整按钮高度 */
+                padding: 12px 0;
             }
             .qr-toggle-btn {
-                width: 100%; /* 按钮宽度适应父容器 */
+                width: 100%;
                 margin: 16px auto 0 auto;
                 font-size: 1em;
                 border-radius: 16px;
@@ -722,7 +721,6 @@ curl -x &quot;协议://用户名:密码@主机:端口&quot; URL
                 </div>
             </div>
         </div>
-        <!-- 二维码展示区域 -->
         <div id="qr-section">
             <div class="input-header">
                 <i class="fas fa-qrcode"></i>
@@ -788,15 +786,12 @@ curl -x &quot;协议://用户名:密码@主机:端口&quot; URL
         </div>
     </div>
     <script>
-        // 动效增强：为输出值添加动画
         function animateOutputValue(id) {
             const el = document.getElementById(id);
             el.classList.remove('animated');
             void el.offsetWidth;
             el.classList.add('animated');
         }
-
-        // 翻译文本字典，新增二维码模块相关文本
         const translations = {
             zh: { 
                 pageTitle: "代理信息解析助手",
@@ -899,7 +894,6 @@ e.g. curl -x "socks5://user:pass@127.0.0.1:8080" ip-api.com
             }
         };
 
-        // 默认二维码为隐藏
         const qrStates = { shadowrocket: false, v2ray: false };
 
         function getDefaultLang() {
