@@ -42,25 +42,28 @@
             gap: 8px;
         }
 	/* 新增二维码转换按钮样式 */
-        #qrpage-btn {
-            background: #ff9800;
-            border: none;
-            color: #fff;
-            padding: 8px 20px;
-            font-size: 15px;
-            border-radius: 6px;
-            cursor: pointer;
-            outline: none;
-            transition: background 0.3s, box-shadow 0.35s;
-            box-shadow: 0 1px 4px rgba(255,152,0,0.12);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 35px;
-        }
-        #qrpage-btn:hover {
-            background: #e65100;
-        }
+	#qrpage-btn {
+	    background: #fff;
+	    border: 1px solid var(--secondary-color);
+	    color: var(--secondary-color);
+	    padding: 8px 20px;
+	    font-size: 15px;
+	    border-radius: 6px;
+	    cursor: pointer;
+	    outline: none;
+	    transition: background 0.3s, color 0.3s, box-shadow 0.35s;
+	    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+	    display: flex;
+	    align-items: center;
+	    justify-content: center;
+	    height: 35px;
+	}
+	
+	#qrpage-btn:hover {
+	    background: var(--primary-color);
+	    color: #fff;
+	}
+
         /* 让语言切换和工具按钮在一行 */
         #top-left-btns {
             position: absolute;
