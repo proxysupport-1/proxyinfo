@@ -41,6 +41,36 @@
             display: flex;
             gap: 8px;
         }
+	/* 新增二维码转换按钮样式 */
+        #qrpage-btn {
+            background: #ff9800;
+            border: none;
+            color: #fff;
+            padding: 8px 20px;
+            font-size: 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            outline: none;
+            transition: background 0.3s, box-shadow 0.35s;
+            box-shadow: 0 1px 4px rgba(255,152,0,0.12);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 120px;
+            height: 35px;
+        }
+        #qrpage-btn:hover {
+            background: #e65100;
+        }
+        /* 让语言切换和二维码按钮在一行 */
+        #top-left-btns {
+            position: absolute;
+            top: 18px;
+            left: 18px;
+            z-index: 2;
+            display: flex;
+            gap: 8px;
+        }
         #language-switcher button {
             background: var(--secondary-color);
             border: none;
@@ -618,9 +648,16 @@
 </head>
 <body>
     <div class="container">
-        <div id="language-switcher">
-            <button id="btn-zh" class="active" onclick="setLanguage('zh')">中文</button>
-            <button id="btn-en" onclick="setLanguage('en')">English</button>
+        <div id="top-left-btns">
+            <!-- 新增跳转二维码转换页按钮 -->
+            <button id="qrpage-btn" onclick="window.open('https://proxysupport-1.github.io/proxyinfo/index.html', '_blank')">
+                <i class="fas fa-tools"></i>
+                <span id="qrpage-btn-text">代理信息解析</span>
+            </button>
+        </div>
+	<div id="language-switcher">
+                <button id="btn-zh" class="active" onclick="setLanguage('zh')">中文</button>
+                <button id="btn-en" onclick="setLanguage('en')">English</button>
         </div>
         <h1 class="title">
             <i class="fas fa-tools"></i>
