@@ -1180,7 +1180,7 @@ e.g. curl -x "socks5://user:pass@127.0.0.1:8080" ip-api.com
         window.onload = function() {
             updateUI();
         };
-		 // 读取 URL 参数
+		// 读取 URL 参数
 		function getQueryParam(name) {
 			const params = new URLSearchParams(window.location.search);
 			return params.get(name);
@@ -1203,26 +1203,33 @@ e.g. curl -x "socks5://user:pass@127.0.0.1:8080" ip-api.com
 			try { return decodeURIComponent(str || ''); } catch(e) { return str || ''; }
 		}
 
-		// 页面加载时自动填充代理信息
 		window.addEventListener('DOMContentLoaded', function() {
 			const proxyValue = getQueryParam('proxy');
+			const readonlyValue = getQueryParam('readonly');
+			const inputEl = document.getElementById('proxy-input');
+
+			// 自动填充代理信息
 			if (proxyValue) {
 				const decoded = decodeProxy(proxyValue);
-				const inputEl = document.getElementById('proxy-input');
 				inputEl.value = decoded;
-				// 触发你的原始解析逻辑
 				if (typeof handleInput === 'function') {
 					handleInput(decoded);
 				}
 			}
-			// 用户输入时自动更新 URL 参数（只绑定一次）
-			document.getElementById('proxy-input').addEventListener('input', function(e) {
-				setQueryParam('proxy', encodeProxy(e.target.value));
-				// 触发你的原始解析逻辑
-				if (typeof handleInput === 'function') {
-					handleInput(e.target.value);
-				}
-			});
+
+			// 是否只读
+			if (readonlyValue === '1' || readonlyValue === 'true') {
+				inputEl.setAttribute('readonly', 'readonly');
+				inputEl.style.background = "#eee"; // 可选：让只读视觉更明显
+			} else {
+				// 仅允许编辑时绑定事件
+				inputEl.addEventListener('input', function(e) {
+					setQueryParam('proxy', encodeProxy(e.target.value));
+					if (typeof handleInput === 'function') {
+						handleInput(e.target.value);
+					}
+				});
+			}
 		});
     </script>
 </body>
