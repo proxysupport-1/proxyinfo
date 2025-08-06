@@ -499,6 +499,19 @@
             overflow-wrap: break-word;
             word-break: break-word;
         }
+	.footertext {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #adadad;
+            font-size: 15px;
+            height: 100%;
+            margin: 20px;
+            text-align: center;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.4s ease-out 0.4s forwards;
+	}
 
         @media (max-width: 600px) {
             .help-icon:hover::after {
@@ -889,6 +902,9 @@
             </div>
         </div>
     </div>
+<footer>
+	<span class="footertext" id="footertext">*本工具为纯前端HTML工具，所有信息均在您本地处理解析</span>
+</footer>
     <script>
         // 语言切换和二维码相关文本
         const translations = {
@@ -910,7 +926,8 @@
                 referralTitleBlack: "稳定可靠的全球",
                 referralTitleBlue: "动静态代理IP",
                 referralDesc: "使用IPFoxy为您提供的长期稳定可靠的代理IP服务<br>让您的线上业务获得无限规模化增长的机会",
-                referralButton: "开始免费试用"
+                referralButton: "开始免费试用",
+		footertext: "*本工具为纯前端HTML工具，所有信息均在您本地处理解析"
             },
             en: {
                 pageTitle: "Proxy QR Converter",
@@ -930,7 +947,8 @@
                 referralTitleBlack: "Secure and Dependable",
                 referralTitleBlue: "Global Proxy Service",
                 referralDesc: "Utilize the secure proxy services provided by IPFoxy to empower your online business with the opportunity for unlimited scaled growth",
-                referralButton: "Start Free Trial"
+                referralButton: "Start Free Trial",
+		footertext: "*This tool is a purely front-end HTML tool; all information is processed and parsed locally on your device"
             }
         };
 
@@ -965,6 +983,7 @@
             document.getElementById('referral-title-blue').textContent = t.referralTitleBlue;
             document.getElementById('referral-desc').innerHTML = t.referralDesc;
             document.getElementById('referral-button-text').textContent = t.referralButton;
+            document.getElementById('footertext').textContent = t.footertext;
         }
 
         function setLanguage(lang) {
