@@ -401,6 +401,20 @@
             overflow-wrap: break-word;
             word-break: break-word;
         }
+		.footertext {
+		  display: flex;
+		  justify-content: center;
+		  align-items: center;
+		  color: #adadad;
+		  font-size: 15px;
+		  height: 100%;
+		  margin: 20px;
+		  text-align: center;
+		  opacity: 0;
+		  transform: translateY(20px);
+		  animation: fadeInUp 0.4s ease-out 0.4s forwards;
+		}
+
         @media (max-width: 600px) {
             .help-icon:hover::after {
                 left: 0;
@@ -823,6 +837,9 @@ curl -x &quot;协议://用户名:密码@主机:端口&quot; URL
             </div>
         </div>
     </div>
+	<footer>
+	<span class="footertext" id="footertext">*本工具为纯前端HTML工具，所有信息均在您本地处理解析</span>
+	</footer>
     <script>
         function animateOutputValue(id) {
             const el = document.getElementById(id);
@@ -878,7 +895,8 @@ curl -x "协议://用户名:密码@主机:端口" URL
                 shadowrocketQRLabel: "ShadowRocket二维码",
                 v2rayQRLabel: "v2ray二维码",
                 hideQRBtn: "隐藏二维码",
-                showQRBtn: "显示二维码"
+                showQRBtn: "显示二维码",
+				footertext: "*本工具为纯前端HTML工具，所有信息均在您本地处理解析"
             },
             en: {
                 pageTitle: "Proxy Information Parsing Assistant",
@@ -928,7 +946,8 @@ e.g. curl -x "socks5://user:pass@127.0.0.1:8080" ip-api.com
                 shadowrocketQRLabel: "ShadowRocket QR",
                 v2rayQRLabel: "v2ray QR",
                 hideQRBtn: "Hide QR",
-                showQRBtn: "Show QR"
+                showQRBtn: "Show QR",
+				footertext: "*This tool is a purely front-end HTML tool; all information is processed and parsed locally on your device"
             }
         };
 
@@ -977,6 +996,7 @@ e.g. curl -x "socks5://user:pass@127.0.0.1:8080" ip-api.com
             document.getElementById('v2ray-qr-label').textContent = t.v2rayQRLabel;
             document.getElementById('toggle-shadowrocket-text').textContent = qrStates.shadowrocket ? t.hideQRBtn : t.showQRBtn;
             document.getElementById('toggle-v2ray-text').textContent = qrStates.v2ray ? t.hideQRBtn : t.showQRBtn;
+			document.getElementById('footertext').textContent = t.footertext;
         }
 
         function setLanguage(lang) {
