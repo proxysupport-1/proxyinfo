@@ -1059,18 +1059,24 @@
                 height: 210,
                 correctLevel: QRCode.CorrectLevel.Q
             });
-            setTimeout(function () {
+            setTimeout(function() {
                 let qrImages1 = document.querySelectorAll("#qrcode-shadowrocket img");
-                qrImages1.forEach(function (img) {
+                qrImages1.forEach(function(img) {
                     img.style.display = "block";
                     img.style.margin = "0 auto";
                     img.style.padding = "10px";
+                    img.style.transition = "box-shadow 0.4s";
+                    img.onmouseenter = () => img.style.boxShadow = "0 6px 24px #33333333";
+                    img.onmouseleave = () => img.style.boxShadow = "";
                 });
                 let qrImages2 = document.querySelectorAll("#qrcode-v2ray img");
-                qrImages2.forEach(function (img) {
+                qrImages2.forEach(function(img) {
                     img.style.display = "block";
                     img.style.margin = "0 auto";
                     img.style.padding = "10px";
+                    img.style.transition = "box-shadow 0.4s";
+                    img.onmouseenter = () => img.style.boxShadow = "0 6px 24px #33333333";
+                    img.onmouseleave = () => img.style.boxShadow = "";
                 });
             }, 10);
 
