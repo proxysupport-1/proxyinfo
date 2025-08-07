@@ -212,12 +212,13 @@
         }
 
         .output-item {
+            position: relative;
+            overflow: hidden;
             background: #f8f9fa;
             padding: 17px 15px;
             border-radius: 10px;
             border-left: 5px solid var(--primary-color);
             text-align: left;
-            position: relative;
             opacity: 0;
             transform: translateY(30px);
             animation: fadeInUp 0.6s cubic-bezier(.23, 1.02, .56, 1.13) forwards;
@@ -249,6 +250,36 @@
             border-left-color: var(--secondary-color);
             transform: translateY(-2px) scale(1.015);
             background: #e3f2fd;
+        }
+
+        .output-bg-icon {
+            position: absolute;
+            top: 18px;
+            right: 18px;
+            font-size: 3.2em;
+            color: rgba(33, 150, 243, 0.05); /* 默认更浅 */
+            opacity: 1;
+            pointer-events: none;
+            z-index: 0;
+            filter: blur(0.5px) drop-shadow(0 2px 8px #1976d211);
+            transform: rotate(-14deg) scale(1.08);
+            transition: filter 0.25s, transform 0.25s, color 0.25s, opacity 0.25s;
+            max-width: 90px;
+            max-height: 90px;
+            overflow: hidden;
+        }
+
+        .output-item:hover .output-bg-icon {
+            filter: blur(0px) drop-shadow(0 4px 16px #2196f322);
+            color: rgba(33, 150, 243, 0.09); /* 悬停时更浅 */
+            opacity: 1;
+            transform: rotate(-6deg) scale(1.13);
+        }
+
+        .output-label,
+        .output-value {
+            position: relative;
+            z-index: 1;
         }
 
         .output-label {
@@ -837,6 +868,8 @@
             </div>
             <div class="output-grid">
                 <div class="output-item" style="grid-column: 1 / -1;">
+                    <!-- 背景图标 -->
+                    <i class="fas fa-network-wired output-bg-icon"></i>
                     <div class="output-label">
                         <i class="fas fa-network-wired"></i>
                         <span id="protocol-label">协议类型</span>
@@ -844,6 +877,7 @@
                     <div class="output-value" id="protocol">-</div>
                 </div>
                 <div class="output-item">
+                    <i class="fas fa-server output-bg-icon"></i>
                     <div class="output-label">
                         <i class="fas fa-server"></i>
                         <span id="host-label">服务器地址</span>
@@ -851,6 +885,7 @@
                     <div class="output-value" id="host">-</div>
                 </div>
                 <div class="output-item">
+                    <i class="fas fa-plug output-bg-icon"></i>
                     <div class="output-label">
                         <i class="fas fa-plug"></i>
                         <span id="port-label">端口号</span>
@@ -858,6 +893,7 @@
                     <div class="output-value" id="port">-</div>
                 </div>
                 <div class="output-item">
+                    <i class="fas fa-user output-bg-icon"></i>
                     <div class="output-label">
                         <i class="fas fa-user"></i>
                         <span id="username-label">用户名</span>
@@ -865,6 +901,7 @@
                     <div class="output-value" id="username">-</div>
                 </div>
                 <div class="output-item">
+                    <i class="fas fa-lock output-bg-icon"></i>
                     <div class="output-label">
                         <i class="fas fa-lock"></i>
                         <span id="password-label">密码</span>
@@ -1016,9 +1053,9 @@ curl -x &quot;协议://用户名:密码@主机:端口&quot; URL
 - Mac用户：在“启动台”打开“终端”，粘贴指令
 
 示例：
-curl -x "协议://用户名:密码@主机:端口" URL
+curl -x &quot;协议://用户名:密码@主机:端口&quot; URL
 
-如：curl -x "socks5://user:pass@127.0.0.1:8080" ip-api.com`,
+如：curl -x &quot;socks5://user:pass@127.0.0.1:8080&quot; ip-api.com`,
                 referralCorner: "推荐",
                 referralTitleBlack: "稳定可靠的全球",
                 referralTitleBlue: "动静态代理IP",
