@@ -1,18 +1,20 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <title>代理信息解析助手</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://proxysupport-1.github.io/proxyinfo/js/qrcode.min.js"></script>
     <style>
-        :root { 
-            --primary-color: #1976D2; 
-            --secondary-color: #2196F3; 
+        :root {
+            --primary-color: #1976D2;
+            --secondary-color: #2196F3;
             --icon-main: #1976D2;
             --code-color: #2c3e50;
         }
-        body { 
+
+        body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             max-width: 800px;
             margin: 20px auto;
@@ -21,18 +23,28 @@
             min-height: 100vh;
             transition: background 0.7s;
         }
+
         .container {
             background: white;
             border-radius: 16px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.14);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.14);
             padding: 36px;
             position: relative;
-            animation: fadeInUp 0.7s cubic-bezier(.23,1.02,.56,1.13);
+            animation: fadeInUp 0.7s cubic-bezier(.23, 1.02, .56, 1.13);
         }
+
         @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(40px);}
-            to   { opacity: 1; transform: translateY(0);}
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
+
         #language-switcher {
             position: absolute;
             top: 18px;
@@ -41,28 +53,29 @@
             display: flex;
             gap: 8px;
         }
-	/* 新增二维码转换按钮样式 */
-	#qrpage-btn {
-	    background: #fff;
-	    border: 1px solid var(--secondary-color);
-	    color: var(--secondary-color);
-	    padding: 8px 20px;
-	    font-size: 15px;
-	    border-radius: 6px;
-	    cursor: pointer;
-	    outline: none;
-	    transition: background 0.3s, color 0.3s, box-shadow 0.35s;
-	    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
-	    display: flex;
-	    align-items: center;
-	    justify-content: center;
-	    height: 35px;
-	}
-	
-	#qrpage-btn:hover {
-	    background: var(--primary-color);
-	    color: #fff;
-	}
+
+        /* 新增二维码转换按钮样式 */
+        #qrpage-btn {
+            background: #fff;
+            border: 1px solid var(--secondary-color);
+            color: var(--secondary-color);
+            padding: 8px 20px;
+            font-size: 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            outline: none;
+            transition: background 0.3s, color 0.3s, box-shadow 0.35s;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 35px;
+        }
+
+        #qrpage-btn:hover {
+            background: var(--primary-color);
+            color: #fff;
+        }
 
         /* 让语言切换和工具按钮在一行 */
         #top-left-btns {
@@ -73,6 +86,7 @@
             display: flex;
             gap: 8px;
         }
+
         #language-switcher button {
             background: var(--secondary-color);
             border: none;
@@ -83,7 +97,7 @@
             cursor: pointer;
             outline: none;
             transition: background 0.3s, box-shadow 0.35s;
-            box-shadow: 0 1px 4px rgba(33,150,243,0.08);
+            box-shadow: 0 1px 4px rgba(33, 150, 243, 0.08);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -91,13 +105,16 @@
             height: 35px;
             box-sizing: border-box;
         }
+
         #language-switcher button.active {
             background: var(--primary-color);
-            box-shadow: 0 3px 10px rgba(76,175,80,0.12);
+            box-shadow: 0 3px 10px rgba(76, 175, 80, 0.12);
         }
+
         #language-switcher button:hover {
             background: #1565C0;
         }
+
         .title {
             color: var(--primary-color);
             text-align: center;
@@ -112,12 +129,17 @@
             opacity: 0;
             animation: fadeIn 1s 0.1s forwards;
         }
+
         @keyframes fadeIn {
-            to { opacity: 1;}
+            to {
+                opacity: 1;
+            }
         }
+
         .input-section {
             margin-bottom: 32px;
         }
+
         .input-header {
             display: flex;
             align-items: center;
@@ -125,9 +147,11 @@
             margin-bottom: 12px;
             position: relative;
         }
+
         .input-header i {
             font-size: 1.2em;
         }
+
         .help-text {
             color: #666;
             font-size: 0.97em;
@@ -137,6 +161,7 @@
             border-radius: 8px;
             line-height: 1.7;
         }
+
         input[type="text"] {
             width: 100%;
             padding: 14px;
@@ -147,12 +172,15 @@
             box-sizing: border-box;
             background: #fff;
         }
-        input[type="text"]:focus, input[type="text"]:hover {
+
+        input[type="text"]:focus,
+        input[type="text"]:hover {
             border-color: var(--secondary-color);
             outline: none;
-            box-shadow: 0 0 18px 0 rgba(30,34,45,0.14), 0 1px 4px rgba(33,150,243,0.11);
+            box-shadow: 0 0 18px 0 rgba(30, 34, 45, 0.14), 0 1px 4px rgba(33, 150, 243, 0.11);
             background: #f5fbff;
         }
+
         .btn {
             display: inline-block;
             background: var(--primary-color);
@@ -164,21 +192,25 @@
             cursor: pointer;
             transition: background 0.3s, box-shadow 0.27s;
             margin-top: 12px;
-            box-shadow: 0 1px 6px rgba(76,175,80,0.08);
+            box-shadow: 0 1px 6px rgba(76, 175, 80, 0.08);
         }
+
         .btn:hover {
             background: #388e3c;
-            box-shadow: 0 3px 14px rgba(33,150,243,0.09);
+            box-shadow: 0 3px 14px rgba(33, 150, 243, 0.09);
         }
+
         .output-section {
             margin-top: 22px;
         }
+
         .output-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 16px;
             margin-top: 22px;
         }
+
         .output-item {
             background: #f8f9fa;
             padding: 17px 15px;
@@ -188,20 +220,37 @@
             position: relative;
             opacity: 0;
             transform: translateY(30px);
-            animation: fadeInUp 0.6s cubic-bezier(.23,1.02,.56,1.13) forwards;
+            animation: fadeInUp 0.6s cubic-bezier(.23, 1.02, .56, 1.13) forwards;
             transition: box-shadow 0.27s, border-color 0.22s, background 0.19s, transform 0.18s;
         }
-        .output-item:nth-child(1) { animation-delay: 0.12s;}
-        .output-item:nth-child(2) { animation-delay: 0.18s;}
-        .output-item:nth-child(3) { animation-delay: 0.22s;}
-        .output-item:nth-child(4) { animation-delay: 0.28s;}
-        .output-item:nth-child(5) { animation-delay: 0.32s;}
+
+        .output-item:nth-child(1) {
+            animation-delay: 0.12s;
+        }
+
+        .output-item:nth-child(2) {
+            animation-delay: 0.18s;
+        }
+
+        .output-item:nth-child(3) {
+            animation-delay: 0.22s;
+        }
+
+        .output-item:nth-child(4) {
+            animation-delay: 0.28s;
+        }
+
+        .output-item:nth-child(5) {
+            animation-delay: 0.32s;
+        }
+
         .output-item:hover {
             box-shadow: 0 8px 28px rgba(25, 118, 210, 0.13);
             border-left-color: var(--secondary-color);
             transform: translateY(-2px) scale(1.015);
             background: #e3f2fd;
         }
+
         .output-label {
             color: #666;
             font-size: 0.96em;
@@ -212,6 +261,7 @@
             gap: 8px;
             font-weight: 500;
         }
+
         .output-value {
             color: #333;
             font-weight: 500;
@@ -221,9 +271,11 @@
             transition: color 0.2s, background 0.18s;
             background: none;
         }
+
         .output-item:hover {
             background: #e3f2fd;
         }
+
         .error-message {
             color: #ff4444;
             padding: 10px;
@@ -234,12 +286,31 @@
             text-align: left;
             animation: shake 0.25s;
         }
+
         @keyframes shake {
-            10%, 90% { transform: translateX(-1px);}
-            20%, 80% { transform: translateX(2px);}
-            30%, 50%, 70% { transform: translateX(-3px);}
-            40%, 60% { transform: translateX(3px);}
+
+            10%,
+            90% {
+                transform: translateX(-1px);
+            }
+
+            20%,
+            80% {
+                transform: translateX(2px);
+            }
+
+            30%,
+            50%,
+            70% {
+                transform: translateX(-3px);
+            }
+
+            40%,
+            60% {
+                transform: translateX(3px);
+            }
         }
+
         .example-section {
             margin-top: 28px;
             padding: 16px;
@@ -247,12 +318,14 @@
             border-radius: 11px;
             text-align: left;
         }
+
         .example-title {
             color: #666;
             font-weight: bold;
             margin-bottom: 10px;
             text-align: left;
         }
+
         .example-item {
             color: #444;
             font-size: 0.98em;
@@ -262,24 +335,28 @@
             text-align: left;
             transition: background 0.2s, color 0.2s, border-color 0.2s, transform 0.16s;
         }
+
         .example-item:hover {
             background: #e3f2fd;
             border-left-color: var(--icon-main);
             color: var(--icon-main);
             transform: translateX(3px) scale(1.01);
         }
+
         .formatted-box {
             grid-column: 1 / -1;
             position: relative;
             margin-top: 10px;
-            animation: fadeInUp 0.4s cubic-bezier(.23,1.02,.56,1.13);
+            animation: fadeInUp 0.4s cubic-bezier(.23, 1.02, .56, 1.13);
             transition: box-shadow 0.27s, border-color 0.22s, background 0.19s, transform 0.18s;
         }
+
         .formatted-box:hover .formatted-content {
-            box-shadow: 0 6px 16px rgba(25,118,210,0.09);
+            box-shadow: 0 6px 16px rgba(25, 118, 210, 0.09);
             border-color: var(--secondary-color);
             background: #e3f2fd;
         }
+
         .formatted-content {
             font-family: 'Fira Mono', 'Courier New', monospace;
             background: #f8f9fa;
@@ -295,6 +372,7 @@
             font-size: 1.02em;
             transition: box-shadow 0.27s, border-color 0.22s, background 0.19s;
         }
+
         .qr-output-value {
             color: #333;
             font-weight: 500;
@@ -304,6 +382,7 @@
             transition: color 0.2s, background 0.18s;
             background: none;
         }
+
         .copy-btn,
         .qr-toggle-btn {
             border: none;
@@ -315,35 +394,47 @@
             z-index: 1;
             transition: background 0.3s, box-shadow 0.22s, filter 0.2s, transform 0.17s;
         }
-		.copy-btn {
-			position: absolute;
-			left: 0;
-			right: 0;
-			bottom: 0;
-			width: 100%;
-			border-radius: 0 0 8px 8px;
-			background: var(--secondary-color);
-			color: white;
-			padding: 7px 0;
-			font-size: 0.90em;
-			text-align: center;
-			justify-content: center;
-			display: flex;
-			align-items: center;
-			gap: 6px;
-			border-top: 1px solid #ddd;
-			box-shadow: none;
-		}
+
+        .copy-btn {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            border-radius: 0 0 8px 8px;
+            background: var(--secondary-color);
+            color: white;
+            padding: 7px 0;
+            font-size: 0.90em;
+            text-align: center;
+            justify-content: center;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border-top: 1px solid #ddd;
+            box-shadow: none;
+        }
+
         .copy-btn.copied {
             background: var(--primary-color);
             pointer-events: none;
             animation: btnFloat 0.14s;
         }
+
         @keyframes btnFloat {
-            0%   { transform: scale(1);}
-            50%  { transform: scale(1.02);}
-            100% { transform: scale(1);}
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.02);
+            }
+
+            100% {
+                transform: scale(1);
+            }
         }
+
         .qr-toggle-btn {
             margin: 11px auto 0 auto;
             background: #ff9800;
@@ -351,20 +442,25 @@
             padding: 8px 20px;
             display: block;
             text-align: center;
-            box-shadow: 0 1px 7px rgba(255,152,0,0.07);
+            box-shadow: 0 1px 7px rgba(255, 152, 0, 0.07);
             border-radius: 7px;
         }
+
         .copy-btn:hover {
             background: #1976D2;
         }
+
         .qr-toggle-btn:hover {
             background: #e65100;
         }
-        #formatted-text, #curl-command {
+
+        #formatted-text,
+        #curl-command {
             margin: 0;
             line-height: 1.6;
             text-align: left;
         }
+
         .help-icon {
             cursor: help;
             color: var(--icon-main);
@@ -373,14 +469,16 @@
             margin-left: 6px;
             transition: all 0.2s;
         }
+
         .help-icon:hover {
             color: var(--secondary-color);
         }
+
         .help-icon:hover::after {
             content: attr(data-tooltip);
             white-space: pre-line;
             position: absolute;
-            background: rgba(30,34,45,0.97);
+            background: rgba(30, 34, 45, 0.97);
             color: #fafeff;
             font-family: 'Segoe UI', 'Helvetica Neue', Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif;
             font-size: 15px;
@@ -393,7 +491,7 @@
             left: 28px;
             top: 0;
             z-index: 1003;
-            box-shadow: 0 8px 32px rgba(40,40,40,0.32), 0 1.5px 8px rgba(0,0,0,0.16);
+            box-shadow: 0 8px 32px rgba(40, 40, 40, 0.32), 0 1.5px 8px rgba(0, 0, 0, 0.16);
             border: 1.5px solid #333;
             pointer-events: none;
             transition: box-shadow 0.22s, background 0.18s;
@@ -401,19 +499,20 @@
             overflow-wrap: break-word;
             word-break: break-word;
         }
-		.footertext {
-		  display: flex;
-		  justify-content: center;
-		  align-items: center;
-		  color: #adadad;
-		  font-size: 15px;
-		  height: 100%;
-		  margin: 20px;
-		  text-align: center;
-		  opacity: 0;
-		  transform: translateY(20px);
-		  animation: fadeInUp 0.4s ease-out 0.4s forwards;
-		}
+
+        .footertext {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #adadad;
+            font-size: 15px;
+            height: 100%;
+            margin: 20px;
+            text-align: center;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.4s ease-out 0.4s forwards;
+        }
 
         @media (max-width: 600px) {
             .help-icon:hover::after {
@@ -425,6 +524,7 @@
                 padding: 14px 10px;
             }
         }
+
         .referral-container {
             position: relative;
             margin-top: 34px;
@@ -432,7 +532,7 @@
             background: #ffffff;
             border-radius: 18px;
             border: 2px solid var(--secondary-color);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.10);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.10);
             overflow: hidden;
             background-image: url("./img/referralBg.png");
             background-repeat: no-repeat, no-repeat;
@@ -441,11 +541,13 @@
             text-align: center;
             transition: box-shadow 0.37s, transform 0.27s, border-color 0.22s;
         }
+
         .referral-container:hover {
             box-shadow: 0 10px 32px rgba(35, 157, 250, 0.24);
             border-color: var(--secondary-color);
             transform: translateY(-7px) scale(1.025);
         }
+
         .referral-corner {
             position: absolute;
             top: 10px;
@@ -459,10 +561,11 @@
             transform: rotate(45deg);
             font-size: 13px;
             font-weight: bold;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
             font-family: Arial, sans-serif;
             letter-spacing: 3px;
         }
+
         .referral-content {
             text-align: center;
             line-height: 1.7;
@@ -470,6 +573,7 @@
             z-index: 1;
             padding: 9px;
         }
+
         .referral-title {
             font-size: 1.5em;
             font-weight: bold;
@@ -477,12 +581,15 @@
             letter-spacing: 1px;
             text-align: center;
         }
+
         .referral-title-black {
             color: #19304a;
         }
+
         .referral-title-blue {
             color: #239dfa;
         }
+
         .referral-desc {
             color: #7f7f7f;
             font-size: 0.99em;
@@ -490,6 +597,7 @@
             padding: 0 15px;
             text-align: center;
         }
+
         .referral-button {
             display: inline-block;
             background: #239dfa;
@@ -503,22 +611,26 @@
             border: 2px solid transparent;
             margin-top: 4px;
         }
+
         .referral-button:hover {
             background: white;
             color: #239dfa;
             border-color: #239dfa;
             transform: translateY(-2px) scale(1.04);
         }
+
         #qr-section {
             margin-top: 32px;
             display: none;
             text-align: left;
             animation: fadeInUp 0.8s;
         }
+
         .qr-outer {
             transition: filter 0.3s, opacity 0.4s;
             position: relative;
         }
+
         .qr-outer.blurred {
             filter: blur(8px) grayscale(0.3);
             pointer-events: none;
@@ -532,18 +644,21 @@
                 padding: 20px 5vw;
                 border-radius: 16px;
             }
+
             .title {
                 font-size: 1.9em;
                 margin-top: 38px;
                 margin-bottom: 20px;
                 gap: 10px;
             }
+
             #language-switcher {
                 position: static;
                 display: flex;
                 justify-content: center;
                 gap: 10px;
             }
+
             .input-section,
             .output-section,
             .referral-container {
@@ -552,34 +667,41 @@
                 padding: 16px 8px;
                 border-radius: 16px;
             }
+
             .output-grid {
                 grid-template-columns: 1fr;
                 gap: 14px;
             }
+
             .output-item {
                 padding: 12px 10px;
                 border-radius: 16px;
             }
+
             .qr-outer img {
                 max-width: 90vw;
                 height: auto;
                 padding: 10px;
                 border-radius: 8px;
             }
+
             .formatted-box {
                 margin-top: 14px;
                 border-radius: 16px;
             }
+
             .formatted-content {
                 padding: 14px 4vw 52px 14px;
                 font-size: 1em;
                 border-radius: 16px;
             }
+
             .copy-btn {
                 font-size: 1em;
                 border-radius: 0 0 15px 15px;
                 padding: 12px 0;
             }
+
             .qr-toggle-btn {
                 width: 100%;
                 margin: 16px auto 0 auto;
@@ -595,28 +717,34 @@
                 padding: 20px 4vw;
                 border-radius: 16px;
             }
+
             .output-grid {
                 gap: 16px;
             }
+
             .output-item {
                 padding: 14px 12px;
                 border-radius: 16px;
             }
+
             .formatted-content {
                 font-size: 1em;
                 padding: 16px 4vw 52px 16px;
                 border-radius: 16px;
             }
+
             .copy-btn {
                 padding: 14px 0;
                 font-size: 1em;
                 border-radius: 0 0 15px 15px;
             }
+
             .qr-toggle-btn {
                 width: 92%;
                 padding: 14px 0;
                 font-size: 1em;
             }
+
             .referral-container {
                 padding: 20px;
                 border-radius: 16px;
@@ -628,40 +756,48 @@
                 padding: 18px 4vw;
                 border-radius: 16px;
             }
+
             .title {
                 font-size: 1.5em;
                 gap: 8px;
             }
+
             .output-item {
                 padding: 12px 8px;
                 border-radius: 16px;
             }
+
             .formatted-content {
                 font-size: 0.95em;
                 padding: 14px 4vw 52px 12px;
             }
+
             .copy-btn {
                 font-size: 0.95em;
                 border-radius: 0 0 15px 15px;
                 padding: 12px 0;
             }
+
             .qr-toggle-btn {
                 width: 90%;
                 padding: 12px 0;
                 font-size: 0.95em;
             }
+
             .referral-container {
                 padding: 18px;
                 border-radius: 16px;
             }
+
             .qr-outer img {
-                width: 90px!important;
-                height: 90px!important;
-                padding: 4px!important;
+                width: 90px !important;
+                height: 90px !important;
+                padding: 4px !important;
             }
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div id="top-left-btns">
@@ -670,9 +806,9 @@
                 <i class="fas fa-qrcode"></i>
             </button>
         </div>
-	<div id="language-switcher">
-                <button id="btn-zh" class="active" onclick="setLanguage('zh')">中文</button>
-                <button id="btn-en" onclick="setLanguage('en')">English</button>
+        <div id="language-switcher">
+            <button id="btn-zh" class="active" onclick="setLanguage('zh')">中文</button>
+            <button id="btn-en" onclick="setLanguage('en')">English</button>
         </div>
         <h1 class="title">
             <i class="fas fa-tools"></i>
@@ -683,9 +819,8 @@
                 <i class="fas fa-keyboard"></i>
                 <h3 id="input-header">在这里粘贴代理信息</h3>
             </div>
-            <input type="text" id="proxy-input" 
-                   placeholder="例如：socks5://127.0.0.1:8080:user:pass"
-                   oninput="handleInput(this.value)">
+            <input type="text" id="proxy-input" placeholder="例如：socks5://127.0.0.1:8080:user:pass"
+                oninput="handleInput(this.value)">
             <div class="help-text" id="help-text">
                 <i class="fas fa-info-circle"></i>
                 支持多种格式自动识别，输入时自动解析。常见格式示例见页面最下方。
@@ -701,7 +836,7 @@
                 <h3 id="output-header">解析结果</h3>
             </div>
             <div class="output-grid">
-                <div class="output-item">
+                <div class="output-item" style="grid-column: 1 / -1;">
                     <div class="output-label">
                         <i class="fas fa-network-wired"></i>
                         <span id="protocol-label">协议类型</span>
@@ -830,16 +965,16 @@ curl -x &quot;协议://用户名:密码@主机:端口&quot; URL
                 <p class="referral-desc" id="referral-desc">
                     使用IPFoxy为您提供的长期稳定可靠的代理IP服务<br>
                     让您的线上业务获得无限规模化增长的机会
-                </p> 
+                </p>
                 <a href="https://referral.ipfoxy.com/Support" class="referral-button" id="referral-button">
                     <span id="referral-button-text">开始免费试用</span> <i class="fa-solid fa-arrow-right"></i>
                 </a>
             </div>
         </div>
     </div>
-	<footer>
-	<span class="footertext" id="footertext">*本工具为纯前端HTML工具，所有信息均在您本地处理解析</span>
-	</footer>
+    <footer>
+        <span class="footertext" id="footertext">*本工具为纯前端HTML工具，所有信息均在您本地处理解析</span>
+    </footer>
     <script>
         function animateOutputValue(id) {
             const el = document.getElementById(id);
@@ -848,7 +983,7 @@ curl -x &quot;协议://用户名:密码@主机:端口&quot; URL
             el.classList.add('animated');
         }
         const translations = {
-            zh: { 
+            zh: {
                 pageTitle: "代理信息解析助手",
                 inputHeader: "在这里粘贴代理信息",
                 placeholder: "例如：socks5://127.0.0.1:8080:user:pass",
@@ -896,7 +1031,7 @@ curl -x "协议://用户名:密码@主机:端口" URL
                 v2rayQRLabel: "v2ray二维码",
                 hideQRBtn: "隐藏二维码",
                 showQRBtn: "显示二维码",
-				footertext: "*本工具为纯前端HTML工具，所有信息均在您本地处理解析"
+                footertext: "*本工具为纯前端HTML工具，所有信息均在您本地处理解析"
             },
             en: {
                 pageTitle: "Proxy Information Parsing Assistant",
@@ -947,7 +1082,7 @@ e.g. curl -x "socks5://user:pass@127.0.0.1:8080" ip-api.com
                 v2rayQRLabel: "v2ray QR",
                 hideQRBtn: "Hide QR",
                 showQRBtn: "Show QR",
-				footertext: "*This tool is a purely front-end HTML tool; all information is processed and parsed locally on your device"
+                footertext: "*This tool is a purely front-end HTML tool; all information is processed and parsed locally on your device"
             }
         };
 
@@ -996,7 +1131,7 @@ e.g. curl -x "socks5://user:pass@127.0.0.1:8080" ip-api.com
             document.getElementById('v2ray-qr-label').textContent = t.v2rayQRLabel;
             document.getElementById('toggle-shadowrocket-text').textContent = qrStates.shadowrocket ? t.hideQRBtn : t.showQRBtn;
             document.getElementById('toggle-v2ray-text').textContent = qrStates.v2ray ? t.hideQRBtn : t.showQRBtn;
-			document.getElementById('footertext').textContent = t.footertext;
+            document.getElementById('footertext').textContent = t.footertext;
         }
 
         function setLanguage(lang) {
@@ -1166,9 +1301,9 @@ e.g. curl -x "socks5://user:pass@127.0.0.1:8080" ip-api.com
                 height: 210,
                 correctLevel: QRCode.CorrectLevel.Q
             });
-            setTimeout(function() {
+            setTimeout(function () {
                 let qrImages1 = document.querySelectorAll("#qrcode-shadowrocket img");
-                qrImages1.forEach(function(img) {
+                qrImages1.forEach(function (img) {
                     img.style.display = "block";
                     img.style.margin = "0 auto";
                     img.style.padding = "10px";
@@ -1177,7 +1312,7 @@ e.g. curl -x "socks5://user:pass@127.0.0.1:8080" ip-api.com
                     img.onmouseleave = () => img.style.boxShadow = "";
                 });
                 let qrImages2 = document.querySelectorAll("#qrcode-v2ray img");
-                qrImages2.forEach(function(img) {
+                qrImages2.forEach(function (img) {
                     img.style.display = "block";
                     img.style.margin = "0 auto";
                     img.style.padding = "10px";
@@ -1235,60 +1370,61 @@ e.g. curl -x "socks5://user:pass@127.0.0.1:8080" ip-api.com
             handleCopy(btn, text);
         }
 
-        window.onload = function() {
+        window.onload = function () {
             updateUI();
         };
-		// 读取 URL 参数
-		function getQueryParam(name) {
-			const params = new URLSearchParams(window.location.search);
-			return params.get(name);
-		}
+        // 读取 URL 参数
+        function getQueryParam(name) {
+            const params = new URLSearchParams(window.location.search);
+            return params.get(name);
+        }
 
-		// 设置 URL 参数（不刷新页面）
-		function setQueryParam(name, value) {
-			const url = new URL(window.location);
-			url.searchParams.set(name, value);
-			window.history.replaceState({}, '', url);
-		}
+        // 设置 URL 参数（不刷新页面）
+        function setQueryParam(name, value) {
+            const url = new URL(window.location);
+            url.searchParams.set(name, value);
+            window.history.replaceState({}, '', url);
+        }
 
-		// 编码代理信息
-		function encodeProxy(str) {
-			return encodeURIComponent(str || '');
-		}
+        // 编码代理信息
+        function encodeProxy(str) {
+            return encodeURIComponent(str || '');
+        }
 
-		// 解码代理信息
-		function decodeProxy(str) {
-			try { return decodeURIComponent(str || ''); } catch(e) { return str || ''; }
-		}
+        // 解码代理信息
+        function decodeProxy(str) {
+            try { return decodeURIComponent(str || ''); } catch (e) { return str || ''; }
+        }
 
-		window.addEventListener('DOMContentLoaded', function() {
-			const proxyValue = getQueryParam('proxy');
-			const readonlyValue = getQueryParam('readonly');
-			const inputEl = document.getElementById('proxy-input');
+        window.addEventListener('DOMContentLoaded', function () {
+            const proxyValue = getQueryParam('proxy');
+            const readonlyValue = getQueryParam('readonly');
+            const inputEl = document.getElementById('proxy-input');
 
-			// 自动填充代理信息
-			if (proxyValue) {
-				const decoded = decodeProxy(proxyValue);
-				inputEl.value = decoded;
-				if (typeof handleInput === 'function') {
-					handleInput(decoded);
-				}
-			}
+            // 自动填充代理信息
+            if (proxyValue) {
+                const decoded = decodeProxy(proxyValue);
+                inputEl.value = decoded;
+                if (typeof handleInput === 'function') {
+                    handleInput(decoded);
+                }
+            }
 
-			// 是否只读
-			if (readonlyValue === '1' || readonlyValue === 'true') {
-				inputEl.setAttribute('readonly', 'readonly');
-				inputEl.style.background = "#eee"; // 可选：让只读视觉更明显
-			} else {
-				// 仅允许编辑时绑定事件
-				inputEl.addEventListener('input', function(e) {
-					setQueryParam('proxy', encodeProxy(e.target.value));
-					if (typeof handleInput === 'function') {
-						handleInput(e.target.value);
-					}
-				});
-			}
-		});
+            // 是否只读
+            if (readonlyValue === '1' || readonlyValue === 'true') {
+                inputEl.setAttribute('readonly', 'readonly');
+                inputEl.style.background = "#eee"; // 可选：让只读视觉更明显
+            } else {
+                // 仅允许编辑时绑定事件
+                inputEl.addEventListener('input', function (e) {
+                    setQueryParam('proxy', encodeProxy(e.target.value));
+                    if (typeof handleInput === 'function') {
+                        handleInput(e.target.value);
+                    }
+                });
+            }
+        });
     </script>
 </body>
+
 </html>
