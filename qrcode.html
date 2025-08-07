@@ -53,29 +53,29 @@
             display: flex;
             gap: 8px;
         }
-		
-	/* 新增二维码转换按钮样式 */
-	#toolspage-btn {
-	    background: #fff;
-	    border: 1px solid var(--secondary-color);
-	    color: var(--secondary-color);
-	    padding: 8px 20px;
-	    font-size: 15px;
-	    border-radius: 6px;
-	    cursor: pointer;
-	    outline: none;
-	    transition: background 0.3s, color 0.3s, box-shadow 0.35s;
-	    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
-	    display: flex;
-	    align-items: center;
-	    justify-content: center;
-	    height: 35px;
-	}
-	
-	#toolspage-btn:hover {
-	    background: var(--primary-color);
-	    color: #fff;
-	}
+
+        /* 新增二维码转换按钮样式 */
+        #toolspage-btn {
+            background: #fff;
+            border: 1px solid var(--secondary-color);
+            color: var(--secondary-color);
+            padding: 8px 20px;
+            font-size: 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            outline: none;
+            transition: background 0.3s, color 0.3s, box-shadow 0.35s;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 35px;
+        }
+
+        #toolspage-btn:hover {
+            background: var(--primary-color);
+            color: #fff;
+        }
 
         /* 让语言切换和二维码按钮在一行 */
         #top-left-btns {
@@ -499,7 +499,8 @@
             overflow-wrap: break-word;
             word-break: break-word;
         }
-	.footertext {
+
+        .footertext {
             display: flex;
             justify-content: center;
             align-items: center;
@@ -511,7 +512,7 @@
             opacity: 0;
             transform: translateY(20px);
             animation: fadeInUp 0.4s ease-out 0.4s forwards;
-	}
+        }
 
         @media (max-width: 600px) {
             .help-icon:hover::after {
@@ -802,13 +803,14 @@
         <!-- 顶部右侧按钮区，包含语言切换和二维码转换按钮 -->
         <div id="top-left-btns">
             <!-- 新增跳转完整工具页按钮 -->
-            <button id="toolspage-btn" onclick="window.open('https://proxysupport-1.github.io/proxyinfo/index.html', '')">
+            <button id="toolspage-btn"
+                onclick="window.open('https://proxysupport-1.github.io/proxyinfo/index.html', '')">
                 <i class="fas fa-tools"></i>
             </button>
         </div>
-		<div id="language-switcher">
-                <button id="btn-zh" class="active" onclick="setLanguage('zh')">中文</button>
-                <button id="btn-en" onclick="setLanguage('en')">English</button>
+        <div id="language-switcher">
+            <button id="btn-zh" class="active" onclick="setLanguage('zh')">中文</button>
+            <button id="btn-en" onclick="setLanguage('en')">English</button>
         </div>
         <h1 class="title">
             <i class="fas fa-qrcode"></i>
@@ -902,9 +904,9 @@
             </div>
         </div>
     </div>
-<footer>
-	<span class="footertext" id="footertext">*本工具为纯前端HTML工具，所有信息均在您本地处理解析</span>
-</footer>
+    <footer>
+        <span class="footertext" id="footertext">*本工具为纯前端HTML工具，所有信息均在您本地处理解析</span>
+    </footer>
     <script>
         // 语言切换和二维码相关文本
         const translations = {
@@ -927,7 +929,7 @@
                 referralTitleBlue: "动静态代理IP",
                 referralDesc: "使用IPFoxy为您提供的长期稳定可靠的代理IP服务<br>让您的线上业务获得无限规模化增长的机会",
                 referralButton: "开始免费试用",
-		footertext: "*本工具为纯前端HTML工具，所有信息均在您本地处理解析"
+                footertext: "*本工具为纯前端HTML工具，所有信息均在您本地处理解析"
             },
             en: {
                 pageTitle: "Proxy QR Converter",
@@ -948,7 +950,7 @@
                 referralTitleBlue: "Global Proxy Service",
                 referralDesc: "Utilize the secure proxy services provided by IPFoxy to empower your online business with the opportunity for unlimited scaled growth",
                 referralButton: "Start Free Trial",
-		footertext: "*This tool is a purely front-end HTML tool; all information is processed and parsed locally on your device"
+                footertext: "*This tool is a purely front-end HTML tool; all information is processed and parsed locally on your device"
             }
         };
 
@@ -984,6 +986,14 @@
             document.getElementById('referral-desc').innerHTML = t.referralDesc;
             document.getElementById('referral-button-text').textContent = t.referralButton;
             document.getElementById('footertext').textContent = t.footertext;
+
+            // 判断只读状态，决定 input-header 文本
+            const readonlyValue = getQueryParam('readonly');
+            if (readonlyValue === '1' || readonlyValue === 'true') {
+                document.getElementById('input-header').textContent = currentLang === 'zh' ? '您的代理信息' : 'Your Proxy Information';
+            } else {
+                document.getElementById('input-header').textContent = t.inputHeader;
+            }
         }
 
         function setLanguage(lang) {
@@ -1059,9 +1069,9 @@
                 height: 210,
                 correctLevel: QRCode.CorrectLevel.Q
             });
-            setTimeout(function() {
+            setTimeout(function () {
                 let qrImages1 = document.querySelectorAll("#qrcode-shadowrocket img");
-                qrImages1.forEach(function(img) {
+                qrImages1.forEach(function (img) {
                     img.style.display = "block";
                     img.style.margin = "0 auto";
                     img.style.padding = "10px";
@@ -1070,7 +1080,7 @@
                     img.onmouseleave = () => img.style.boxShadow = "";
                 });
                 let qrImages2 = document.querySelectorAll("#qrcode-v2ray img");
-                qrImages2.forEach(function(img) {
+                qrImages2.forEach(function (img) {
                     img.style.display = "block";
                     img.style.margin = "0 auto";
                     img.style.padding = "10px";
