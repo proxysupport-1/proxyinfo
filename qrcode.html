@@ -1173,88 +1173,70 @@
         }
 
         window.addEventListener('DOMContentLoaded', function () {
-            const proxyValue = getQueryParam('proxy');
-            const readonlyValue = getQueryParam('readonly');
+            const params = new URLSearchParams(window.location.search);
+            const proxyinfoValue = params.get('proxyinfo');
+            const proxyValue = params.get('proxy');
+            const readonlyValue = params.get('readonly');
             const inputEl = document.getElementById('proxy-input');
 
-            // Unicode-safe Base64 编码
-            function b64EncodeUnicode(str) {
-                return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g,
-                    (_, p1) => String.fromCharCode(parseInt(p1, 16))
-                ));
-            }
-
-            // Unicode-safe Base64 解码
             function b64DecodeUnicode(b64) {
                 return decodeURIComponent(Array.prototype.map.call(atob(b64), c =>
                     '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
                 ).join(''));
             }
 
-            // 转 Base64URL（去掉填充符 =，替换 + /，并去掉空白）
-            function toBase64Url(str) {
-                try {
-                    const b64 = b64EncodeUnicode(str)
-                        .replace(/\+/g, '-')
-                        .replace(/\//g, '_')
-                        .replace(/=+$/, '');
-                    return b64.trim().replace(/\s+/g, '');
-                } catch (e) {
-                    console.warn('toBase64Url failed:', e);
-                    return str;
-                }
-            }
-
-            // 从 Base64URL 解码，自动容错（去空格 + 填充补齐）
             function fromBase64UrlMaybe(s) {
-                if (!s || typeof s !== 'string') return null;
+                if (!s) return null;
                 try {
-                    let cleaned = s.trim().replace(/\s+/g, ''); // 去空白字符
+                    let cleaned = s.trim().replace(/\s+/g, '');
                     try { cleaned = decodeURIComponent(cleaned); } catch (_) {}
                     let b64 = cleaned.replace(/-/g, '+').replace(/_/g, '/');
                     while (b64.length % 4) b64 += '=';
                     return b64DecodeUnicode(b64);
-                } catch (e) {
+                } catch {
                     return null;
                 }
             }
 
-            // 读取并填充（优先 Base64URL）
-            if (proxyValue) {
-                let decoded = fromBase64UrlMaybe(proxyValue);
-
-                if (decoded === null) {
-                    try {
-                        decoded = b64DecodeUnicode(proxyValue.trim().replace(/\s+/g, ''));
-                    } catch (_) {
-                        decoded = null;
-                    }
+            let decoded = null;
+            if (proxyinfoValue) {
+                decoded = fromBase64UrlMaybe(proxyinfoValue);
+            } else if (proxyValue) {
+                try {
+                    decoded = decodeProxy(proxyValue);
+                } catch {
+                    decoded = proxyValue;
                 }
+            }
 
-                if (decoded === null) {
-                    try {
-                        decoded = decodeProxy(proxyValue);
-                    } catch (_) {
-                        decoded = proxyValue;
-                    }
-                }
-
+            if (decoded !== null) {
                 inputEl.value = decoded;
                 if (typeof handleInput === 'function') handleInput(decoded);
             }
 
-            // 只读模式不转 Base64、不写回 URL
             if (readonlyValue === '1' || readonlyValue === 'true') {
                 inputEl.setAttribute('readonly', 'readonly');
-                inputEl.style.background = "#eee";
+                inputEl.style.background = '#eee';
                 return;
             }
 
-            // 可编辑模式：写入 Base64URL（无空白）
             inputEl.addEventListener('input', function (e) {
                 const val = e.target.value;
+
+                const b64EncodeUnicode = str => btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g,
+                    (_, p1) => String.fromCharCode(parseInt(p1, 16))));
+
+                const toBase64Url = str => b64EncodeUnicode(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '').trim().replace(/\s+/g, '');
+
                 const encoded = toBase64Url(val);
-                setQueryParam('proxy', encoded);
+
+                // 只写入 proxyinfo 参数，且删除 proxy 参数，避免两个同时存在
+                params.delete('proxy');
+                params.set('proxyinfo', encoded);
+
+                const newUrl = `${window.location.pathname}?${params.toString()}`;
+                history.replaceState(null, '', newUrl);
+
                 if (typeof handleInput === 'function') handleInput(val);
             });
         });
