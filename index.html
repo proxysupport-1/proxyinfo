@@ -1452,9 +1452,30 @@ e.g. curl -x "socks5://user:pass@127.0.0.1:8080" ip-api.com
             const readonlyValue = getQueryParam('readonly');
             const inputEl = document.getElementById('proxy-input');
 
-            // 自动填充代理信息
+            function base64Encode(str) {
+                try {
+                    return btoa(unescape(encodeURIComponent(str)));
+                } catch (e) {
+                    console.warn('Base64 encode failed:', e);
+                    return str;
+                }
+            }
+
+            function base64Decode(str) {
+                try {
+                    return decodeURIComponent(escape(atob(str)));
+                } catch (e) {
+                    return null; // 失败返回 null
+                }
+            }
+
+            // 自动填充代理信息（兼容旧逻辑 + 默认 base64）
             if (proxyValue) {
-                const decoded = decodeProxy(proxyValue);
+                let decoded = base64Decode(proxyValue);
+                if (decoded === null) {
+                    // 如果不是有效的 base64，则走旧的 decodeProxy 逻辑
+                    decoded = decodeProxy(proxyValue);
+                }
                 inputEl.value = decoded;
                 if (typeof handleInput === 'function') {
                     handleInput(decoded);
@@ -1464,17 +1485,20 @@ e.g. curl -x "socks5://user:pass@127.0.0.1:8080" ip-api.com
             // 是否只读
             if (readonlyValue === '1' || readonlyValue === 'true') {
                 inputEl.setAttribute('readonly', 'readonly');
-                inputEl.style.background = "#eee"; // 可选：让只读视觉更明显
+                inputEl.style.background = "#eee"; // 只读视觉更明显
             } else {
-                // 仅允许编辑时绑定事件
+                // 可编辑时绑定事件
                 inputEl.addEventListener('input', function (e) {
-                    setQueryParam('proxy', encodeProxy(e.target.value));
+                    const val = e.target.value;
+                    // 默认写入 base64 编码
+                    setQueryParam('proxy', base64Encode(val));
                     if (typeof handleInput === 'function') {
-                        handleInput(e.target.value);
+                        handleInput(val);
                     }
                 });
             }
         });
+
     </script>
 </body>
 
