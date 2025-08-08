@@ -1452,53 +1452,87 @@ e.g. curl -x "socks5://user:pass@127.0.0.1:8080" ip-api.com
             const readonlyValue = getQueryParam('readonly');
             const inputEl = document.getElementById('proxy-input');
 
-            function base64Encode(str) {
+            // Unicode-safe Base64 编码
+            function b64EncodeUnicode(str) {
+                return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g,
+                    (_, p1) => String.fromCharCode(parseInt(p1, 16))
+                ));
+            }
+
+            // Unicode-safe Base64 解码
+            function b64DecodeUnicode(b64) {
+                return decodeURIComponent(Array.prototype.map.call(atob(b64), c =>
+                    '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+                ).join(''));
+            }
+
+            // 转 Base64URL（去掉填充符 =，替换 + /，并去掉空白）
+            function toBase64Url(str) {
                 try {
-                    return btoa(unescape(encodeURIComponent(str)));
+                    const b64 = b64EncodeUnicode(str)
+                        .replace(/\+/g, '-')
+                        .replace(/\//g, '_')
+                        .replace(/=+$/, '');
+                    return b64.trim().replace(/\s+/g, '');
                 } catch (e) {
-                    console.warn('Base64 encode failed:', e);
+                    console.warn('toBase64Url failed:', e);
                     return str;
                 }
             }
 
-            function base64Decode(str) {
+            // 从 Base64URL 解码，自动容错（去空格 + 填充补齐）
+            function fromBase64UrlMaybe(s) {
+                if (!s || typeof s !== 'string') return null;
                 try {
-                    return decodeURIComponent(escape(atob(str)));
+                    let cleaned = s.trim().replace(/\s+/g, ''); // 去空白字符
+                    try { cleaned = decodeURIComponent(cleaned); } catch (_) {}
+                    let b64 = cleaned.replace(/-/g, '+').replace(/_/g, '/');
+                    while (b64.length % 4) b64 += '=';
+                    return b64DecodeUnicode(b64);
                 } catch (e) {
-                    return null; // 失败返回 null
+                    return null;
                 }
             }
 
-            // 自动填充代理信息（兼容旧逻辑 + 默认 base64）
+            // 读取并填充（优先 Base64URL）
             if (proxyValue) {
-                let decoded = base64Decode(proxyValue);
+                let decoded = fromBase64UrlMaybe(proxyValue);
+
                 if (decoded === null) {
-                    // 如果不是有效的 base64，则走旧的 decodeProxy 逻辑
-                    decoded = decodeProxy(proxyValue);
+                    try {
+                        decoded = b64DecodeUnicode(proxyValue.trim().replace(/\s+/g, ''));
+                    } catch (_) {
+                        decoded = null;
+                    }
                 }
+
+                if (decoded === null) {
+                    try {
+                        decoded = decodeProxy(proxyValue);
+                    } catch (_) {
+                        decoded = proxyValue;
+                    }
+                }
+
                 inputEl.value = decoded;
-                if (typeof handleInput === 'function') {
-                    handleInput(decoded);
-                }
+                if (typeof handleInput === 'function') handleInput(decoded);
             }
 
-            // 是否只读
+            // 只读模式不转 Base64、不写回 URL
             if (readonlyValue === '1' || readonlyValue === 'true') {
                 inputEl.setAttribute('readonly', 'readonly');
-                inputEl.style.background = "#eee"; // 只读视觉更明显
-            } else {
-                // 可编辑时绑定事件
-                inputEl.addEventListener('input', function (e) {
-                    const val = e.target.value;
-                    // 默认写入 base64 编码
-                    setQueryParam('proxy', base64Encode(val));
-                    if (typeof handleInput === 'function') {
-                        handleInput(val);
-                    }
-                });
+                inputEl.style.background = "#eee";
+                return;
             }
-        });
 
+            // 可编辑模式：写入 Base64URL（无空白）
+            inputEl.addEventListener('input', function (e) {
+                const val = e.target.value;
+                const encoded = toBase64Url(val);
+                setQueryParam('proxy', encoded);
+                if (typeof handleInput === 'function') handleInput(val);
+            });
+        });
     </script>
 </body>
 
