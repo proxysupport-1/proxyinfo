@@ -832,6 +832,62 @@
                 padding: 4px !important;
             }
         }
+
+        .output-item.copyable {
+            cursor: pointer;
+            position: relative;
+        }
+
+        .output-item.copyable:hover {
+            box-shadow: 0 8px 28px rgba(25, 118, 210, 0.13);
+            border-left-color: var(--secondary-color);
+            background: #e3f2fd;
+        }
+
+        #copy-toast-stack {
+            position: fixed;
+            top: 32px;
+            right: 32px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 10px;
+            pointer-events: none;
+        }
+
+        .copy-toast-item {
+            background: #1976D2;
+            color: #fff;
+            padding: 12px 28px;
+            border-radius: 8px;
+            font-size: 1.1em;
+            box-shadow: 0 4px 18px #1976d233;
+            opacity: 0;
+            transform: translateX(40px);
+            margin-bottom: 0;
+            pointer-events: none;
+            transition:
+                opacity 0.45s cubic-bezier(.4, 0, .2, 1),
+                transform 0.45s cubic-bezier(.4, 0, .2, 1),
+                margin-bottom 0.45s cubic-bezier(.4, 0, .2, 1);
+        }
+
+        .copy-toast-item.show {
+            opacity: 1;
+            transform: translateX(0);
+            margin-bottom: 0;
+        }
+
+        .copy-toast-item.hide {
+            opacity: 0;
+            transform: translateX(40px);
+        }
+
+        .copy-toast-item.hide:not(:last-child) {
+            margin-bottom: -59px;
+            /* 上移动画，值略大于高度+gap */
+        }
     </style>
 </head>
 
@@ -873,46 +929,56 @@
                 <h3 id="output-header">解析结果</h3>
             </div>
             <div class="output-grid">
-                <div class="output-item" style="grid-column: 1 / -1;">
+                <div class="output-item copyable" style="grid-column: 1 / -1;" onclick="copyOutputItem(this)">
                     <!-- 背景图标 -->
                     <i class="fas fa-network-wired output-bg-icon"></i>
                     <div class="output-label">
                         <i class="fas fa-network-wired"></i>
                         <span id="protocol-label">协议类型</span>
                     </div>
-                    <div class="output-value" id="protocol">-</div>
+                    <div class="output-value" id="protocol">
+                        -
+                    </div>
                 </div>
-                <div class="output-item">
+                <div class="output-item copyable" onclick="copyOutputItem(this)">
                     <i class="fas fa-server output-bg-icon"></i>
                     <div class="output-label">
                         <i class="fas fa-server"></i>
                         <span id="host-label">主机地址</span>
                     </div>
-                    <div class="output-value" id="host">-</div>
+                    <div class="output-value" id="host">
+                        -
+                    </div>
                 </div>
-                <div class="output-item">
+                <div class="output-item copyable" onclick="copyOutputItem(this)">
                     <i class="fas fa-plug output-bg-icon"></i>
                     <div class="output-label">
                         <i class="fas fa-plug"></i>
                         <span id="port-label">端口号</span>
                     </div>
-                    <div class="output-value" id="port">-</div>
+                    <div class="output-value" id="port">
+                        -
+                    </div>
                 </div>
-                <div class="output-item">
+                <div class="output-item copyable" onclick="copyOutputItem(this)">
                     <i class="fas fa-user output-bg-icon"></i>
                     <div class="output-label">
                         <i class="fas fa-user"></i>
                         <span id="username-label">用户名</span>
                     </div>
-                    <div class="output-value" id="username">-</div>
+                    <div class="output-value" id="username">
+                        -
+                    </div>
                 </div>
-                <div class="output-item">
+                <div class="output-item copyable" onclick="copyOutputItem(this)">
                     <i class="fas fa-lock output-bg-icon"></i>
                     <div class="output-label">
                         <i class="fas fa-lock"></i>
                         <span id="password-label">密码</span>
                     </div>
-                    <div class="output-value" id="password">-</div>
+                    <div class="output-value" id="password">
+                        -
+                    </div>
                 </div>
                 <div class="formatted-box">
                     <div class="input-header">
@@ -1018,6 +1084,8 @@ curl -x &quot;协议://用户名:密码@主机:端口&quot; URL
     <footer>
         <span class="footertext" id="footertext">*本工具为纯前端HTML工具，所有信息均在您本地处理解析</span>
     </footer>
+    <!-- 复制成功浮层 -->
+    <div id="copy-toast-stack"></div>
     <script>
         function animateOutputValue(id) {
             const el = document.getElementById(id);
@@ -1421,6 +1489,57 @@ e.g. curl -x "socks5://user:pass@127.0.0.1:8080" ip-api.com
             handleCopy(btn, text);
         }
 
+        function copyOutputValue(el) {
+            const t = translations[currentLang];
+            const text = el.textContent;
+            if (!text || text === '-') return;
+            const original = el.textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                el.textContent = t.copiedConfirmation;
+                el.style.color = "#1976D2";
+                el.style.fontWeight = "bold";
+                setTimeout(() => {
+                    el.textContent = original;
+                    el.style.color = "";
+                    el.style.fontWeight = "";
+                }, 2000);
+            });
+        }
+
+        function showCopyToast(msg) {
+            var stack = document.getElementById('copy-toast-stack');
+            var toast = document.createElement('div');
+            toast.className = 'copy-toast-item';
+            toast.textContent = msg;
+            stack.appendChild(toast);
+            setTimeout(function () {
+                toast.classList.add('show');
+            }, 10);
+            setTimeout(function () {
+                toast.classList.remove('show');
+                toast.classList.add('hide');
+                // 动画结束后移除元素，先恢复 margin-bottom，避免最后一条“顿一下”
+                setTimeout(function () {
+                    toast.style.marginBottom = '0';
+                    setTimeout(function () {
+                        if (toast.parentNode === stack) stack.removeChild(toast);
+                    }, 10);
+                }, 450);
+            }, 2000);
+        }
+
+        function copyOutputItem(item) {
+            // 只复制 value 内容，不包含 label
+            var value = item.querySelector('.output-value');
+            var t = translations[currentLang];
+            if (!value) return;
+            var text = value.textContent;
+            if (!text || text === '-') return;
+            navigator.clipboard.writeText(text).then(function () {
+                showCopyToast(t.copiedConfirmation);
+            });
+        }
+
         window.onload = function () {
             updateUI();
         };
@@ -1464,7 +1583,7 @@ e.g. curl -x "socks5://user:pass@127.0.0.1:8080" ip-api.com
                 if (!s) return null;
                 try {
                     let cleaned = s.trim().replace(/\s+/g, '');
-                    try { cleaned = decodeURIComponent(cleaned); } catch (_) {}
+                    try { cleaned = decodeURIComponent(cleaned); } catch (_) { }
                     let b64 = cleaned.replace(/-/g, '+').replace(/_/g, '/');
                     while (b64.length % 4) b64 += '=';
                     return b64DecodeUnicode(b64);
