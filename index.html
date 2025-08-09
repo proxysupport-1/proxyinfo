@@ -1512,9 +1512,10 @@ e.g. curl -x "socks5://user:pass@127.0.0.1:8080" ip-api.com
             toast.className = 'copy-toast-item';
             toast.textContent = msg;
             stack.appendChild(toast);
-            setTimeout(function () {
+            // 使用 requestAnimationFrame 保证动画触发
+            requestAnimationFrame(function () {
                 toast.classList.add('show');
-            }, 10);
+            });
             setTimeout(function () {
                 toast.classList.remove('show');
                 toast.classList.add('hide');
