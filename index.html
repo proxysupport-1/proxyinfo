@@ -258,7 +258,6 @@
             right: 18px;
             font-size: 3.2em;
             color: rgba(33, 150, 243, 0.05);
-            /* 默认更浅 */
             opacity: 1;
             pointer-events: none;
             z-index: 0;
@@ -885,8 +884,7 @@
         }
 
         .copy-toast-item.hide:not(:last-child) {
-            margin-bottom: -57px;
-            /* 上移动画，值略大于高度+gap */
+            margin-bottom: -56px;
         }
     </style>
 </head>
@@ -1519,7 +1517,7 @@ e.g. curl -x "socks5://user:pass@127.0.0.1:8080" ip-api.com
             setTimeout(function () {
                 toast.classList.remove('show');
                 toast.classList.add('hide');
-                // 动画结束后移除元素，先恢复 margin-bottom，避免最后一条“顿一下”
+                // 动画结束后移除元素
                 setTimeout(function () {
                     toast.style.marginBottom = '0';
                     setTimeout(function () {
