@@ -251,6 +251,60 @@
             background: #e3f2fd;
         }
 
+        /* 返回顶部按钮样式和动画 */
+        #back-to-top-btn {
+            position: fixed;
+            right: 32px;
+            bottom: 32px;
+            z-index: 9998;
+            background: var(--primary-color);
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            box-shadow: 0 4px 18px #1976d233;
+            cursor: pointer;
+            font-size: 1.5em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(40px);
+            transition:
+                opacity 0.35s cubic-bezier(.4, 0, .2, 1),
+                transform 0.35s cubic-bezier(.4, 0, .2, 1);
+        }
+
+        #back-to-top-btn.show {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+
+        #back-to-top-btn.hide {
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(40px);
+        }
+
+        #back-to-top-btn:hover {
+            background: var(--secondary-color);
+            box-shadow: 0 8px 32px #2196f322;
+            transform: scale(1.08);
+        }
+
+        @media (max-width: 700px) {
+            #back-to-top-btn {
+                right: 16px;
+                bottom: 16px;
+                width: 42px;
+                height: 42px;
+                font-size: 1.2em;
+            }
+        }
+
         .output-label {
             color: #666;
             font-size: 0.96em;
@@ -996,10 +1050,14 @@
             }
         }
 
+        function updateLanguageSwitcherActive() {
+            document.getElementById('btn-zh').classList.toggle('active', currentLang === 'zh');
+            document.getElementById('btn-en').classList.toggle('active', currentLang === 'en');
+        }
+
         function setLanguage(lang) {
             currentLang = lang;
-            document.getElementById('btn-zh').classList.toggle('active', lang === 'zh');
-            document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+            updateLanguageSwitcherActive();
             updateUI();
         }
 
@@ -1240,6 +1298,26 @@
                 if (typeof handleInput === 'function') handleInput(val);
             });
         });
+        
+        // 返回顶部按钮逻辑
+        (function () {
+            var btn = document.getElementById('back-to-top-btn');
+            var lastShow = false;
+            function updateBtn() {
+                var shouldShow = window.scrollY > 200;
+                if (shouldShow !== lastShow) {
+                    btn.classList.remove(shouldShow ? 'hide' : 'show');
+                    btn.classList.add(shouldShow ? 'show' : 'hide');
+                    lastShow = shouldShow;
+                }
+            }
+            window.addEventListener('scroll', updateBtn);
+            btn.onclick = function () {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            };
+            // 初始化
+            updateBtn();
+        })();
     </script>
 </body>
 
