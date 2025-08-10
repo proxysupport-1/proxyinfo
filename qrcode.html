@@ -961,6 +961,10 @@
     <footer>
         <span class="footertext" id="footertext">*本工具为纯前端HTML工具，所有信息均在您本地处理解析</span>
     </footer>
+    <!-- 返回顶部按钮 -->
+    <button id="back-to-top-btn" title="返回顶部" class="hide">
+        <i class="fas fa-arrow-up"></i>
+    </button>
     <script>
         // 语言切换和二维码相关文本
         const translations = {
@@ -1204,6 +1208,7 @@
         }
 
         window.onload = function () {
+            updateLanguageSwitcherActive();
             updateUI();
         };
 
