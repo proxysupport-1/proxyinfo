@@ -1484,36 +1484,43 @@ e.g. curl -x "socks5://user:pass@127.0.0.1:8080" ip-api.com
             let v2rayStr = username + ":" + password;
             let v2rayEncoded = btoa(v2rayStr);
             let v2rayQR = finalProtocol + v2rayEncoded + "@" + host + ":" + port;
-
             document.getElementById("qr-section").style.display = "block";
-
-            function createQR(id, text) {
-                const container = document.getElementById(id);
-                container.innerHTML = "";
-                new QRCode(container, {
-                    text: text,
-                    width: 210,
-                    height: 210,
-                    correctLevel: QRCode.CorrectLevel.Q
-                });
-                const img = container.querySelector("img");
-                if (img) {
-                    img.onload = () => {
-                        img.style.display = "block";
-                        img.style.margin = "0 auto";
-                        img.style.padding = "10px";
-                        img.style.transition = "box-shadow 0.4s";
-                        img.onmouseenter = () => img.style.boxShadow = "0 6px 24px #33333333";
-                        img.onmouseleave = () => img.style.boxShadow = "";
-                    };
-                }
-            }
-
-            createQR("qrcode-shadowrocket", shadowrocketQR);
-            createQR("qrcode-v2ray", v2rayQR);
-
+            document.getElementById("qrcode-shadowrocket").innerHTML = "";
+            document.getElementById("qrcode-v2ray").innerHTML = "";
             document.getElementById("text-shadowrocket").innerText = shadowrocketQR;
             document.getElementById("text-v2ray").innerText = v2rayQR;
+            new QRCode(document.getElementById("qrcode-shadowrocket"), {
+                text: shadowrocketQR,
+                width: 210,
+                height: 210,
+                correctLevel: QRCode.CorrectLevel.Q
+            });
+            new QRCode(document.getElementById("qrcode-v2ray"), {
+                text: v2rayQR,
+                width: 210,
+                height: 210,
+                correctLevel: QRCode.CorrectLevel.Q
+            });
+            setTimeout(function () {
+                let qrImages1 = document.querySelectorAll("#qrcode-shadowrocket img");
+                qrImages1.forEach(function (img) {
+                    img.style.display = "block";
+                    img.style.margin = "0 auto";
+                    img.style.padding = "10px";
+                    img.style.transition = "box-shadow 0.4s";
+                    img.onmouseenter = () => img.style.boxShadow = "0 6px 24px #33333333";
+                    img.onmouseleave = () => img.style.boxShadow = "";
+                });
+                let qrImages2 = document.querySelectorAll("#qrcode-v2ray img");
+                qrImages2.forEach(function (img) {
+                    img.style.display = "block";
+                    img.style.margin = "0 auto";
+                    img.style.padding = "10px";
+                    img.style.transition = "box-shadow 0.4s";
+                    img.onmouseenter = () => img.style.boxShadow = "0 6px 24px #33333333";
+                    img.onmouseleave = () => img.style.boxShadow = "";
+                });
+            }, 10);
 
             document.getElementById("shadowrocket-qr-outer").classList.toggle('blurred', !qrStates.shadowrocket);
             document.getElementById("v2ray-qr-outer").classList.toggle('blurred', !qrStates.v2ray);
