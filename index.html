@@ -1623,188 +1623,110 @@ e.g. curl -x "socks5://user:pass@127.0.0.1:8080" ip-api.com
         }
 
         // 其他格式转换功能
-        function updateOtherFormats() {
-            const t = translations[currentLang];
-            const input = document.getElementById('proxy-input').value.trim();
-            const sectionEl = document.getElementById('other-format-section');
-            const titleEl = document.getElementById('other-format-title');
-            const listEl = document.getElementById('other-format-list');
-            listEl.innerHTML = '';
-            sectionEl.style.display = 'none';
-            titleEl.style.display = 'none';
+		function updateOtherFormats() {
+			const t = translations[currentLang];
+			const input = document.getElementById('proxy-input').value.trim();
+			const sectionEl = document.getElementById('other-format-section');
+			const titleEl = document.getElementById('other-format-title');
+			const listEl = document.getElementById('other-format-list');
 
-            if (!input) return;
+			listEl.innerHTML = '';
+			sectionEl.style.display = 'none';
+			titleEl.style.display = 'none';
 
-            let outputs = {
-                protocol: t.unknownProtocol,
-                host: '-',
-                port: '-',
-                username: '-',
-                password: '-'
-            };
-            const patterns = [
-                {
-                    regex: /^(.*?):\/\/(.*?):(\d+):(.*?):(.*)$/,
-                    handler: (match) => {
-                        outputs.protocol = match[1];
-                        outputs.host = match[2];
-                        outputs.port = match[3];
-                        outputs.username = match[4];
-                        outputs.password = match[5];
-                    }
-                },
-                {
-                    regex: /^(.*?):(\d+):(.*?):(.*)$/,
-                    handler: (match) => {
-                        outputs.host = match[1];
-                        outputs.port = match[2];
-                        outputs.username = match[3];
-                        outputs.password = match[4];
-                    }
-                },
-                {
-                    regex: /^(.*?):(.*?)@(.*?):(\d+)$/,
-                    handler: (match) => {
-                        outputs.username = match[1];
-                        outputs.password = match[2];
-                        outputs.host = match[3];
-                        outputs.port = match[4];
-                    }
-                },
-                {
-                    regex: /^(.*?):(.*?):(.*?):(\d+)$/,
-                    handler: (match) => {
-                        outputs.username = match[1];
-                        outputs.password = match[2];
-                        outputs.host = match[3];
-                        outputs.port = match[4];
-                    }
-                },
-                {
-                    regex: /^(.*?):(\d+)@(.*?):(.*)$/,
-                    handler: (match) => {
-                        outputs.host = match[1];
-                        outputs.port = match[2];
-                        outputs.username = match[3];
-                        outputs.password = match[4];
-                    }
-                }
-            ];
-            let matched = false;
-            for (let pattern of patterns) {
-                const match = input.match(pattern.regex);
-                if (match) {
-                    pattern.handler(match);
-                    matched = true;
-                    break;
-                }
-            }
-            if (!matched) return;
+			if (!input) return;
 
-            sectionEl.style.display = '';
-            titleEl.style.display = '';
+			let outputs = {
+				protocol: t.unknownProtocol,
+				host: '-',
+				port: '-',
+				username: '-',
+				password: '-'
+			};
 
-            // 格式标签多语言
-            const formatLabels = currentLang === 'zh'
-                ? [
-                    { label: "用户名:密码@主机:端口", value: `${outputs.username}:${outputs.password}@${outputs.host}:${outputs.port}` },
-                    { label: "协议://主机:端口:用户名:密码", value: `${outputs.protocol}://${outputs.host}:${outputs.port}:${outputs.username}:${outputs.password}` },
-                    { label: "主机:端口@用户名:密码", value: `${outputs.host}:${outputs.port}@${outputs.username}:${outputs.password}` },
-                    { label: "主机:端口:用户名:密码", value: `${outputs.host}:${outputs.port}:${outputs.username}:${outputs.password}` }
-                ]
-                : [
-                    { label: "user:pass@host:port", value: `${outputs.username}:${outputs.password}@${outputs.host}:${outputs.port}` },
-                    { label: "protocol://host:port:user:pass", value: `${outputs.protocol}://${outputs.host}:${outputs.port}:${outputs.username}:${outputs.password}` },
-                    { label: "host:port@user:pass", value: `${outputs.host}:${outputs.port}@${outputs.username}:${outputs.password}` },
-                    { label: "host:port:user:pass", value: `${outputs.host}:${outputs.port}:${outputs.username}:${outputs.password}` }
-                ];
+			const patterns = [
+				{ regex: /^(.*?):\/\/(.*?):(\d+):(.*?):(.*)$/, handler: m => { outputs.protocol = m[1]; outputs.host = m[2]; outputs.port = m[3]; outputs.username = m[4]; outputs.password = m[5]; } },
+				{ regex: /^(.*?):(\d+):(.*?):(.*)$/, handler: m => { outputs.host = m[1]; outputs.port = m[2]; outputs.username = m[3]; outputs.password = m[4]; } },
+				{ regex: /^(.*?):(.*?)@(.*?):(\d+)$/, handler: m => { outputs.username = m[1]; outputs.password = m[2]; outputs.host = m[3]; outputs.port = m[4]; } },
+				{ regex: /^(.*?):(.*?):(.*?):(\d+)$/, handler: m => { outputs.username = m[1]; outputs.password = m[2]; outputs.host = m[3]; outputs.port = m[4]; } },
+				{ regex: /^(.*?):(\d+)@(.*?):(.*)$/, handler: m => { outputs.host = m[1]; outputs.port = m[2]; outputs.username = m[3]; outputs.password = m[4]; } }
+			];
 
-            // 下拉选择美化
-            const selectId = 'other-format-select';
-            let select = document.getElementById(selectId);
-            if (select) select.remove(); // 先移除旧的
-            select = document.createElement('select');
-            select.id = selectId;
-            select.style.fontSize = '1em';
-            select.style.padding = '7px 18px 7px 14px';
-            select.style.borderRadius = '7px';
-            select.style.border = '1.5px solid #e3f2fd';
-            select.style.background = '#f8f9fa';
-            select.style.color = '#1976D2';
-            select.style.fontWeight = '500';
-            select.style.outline = 'none';
-            select.style.cursor = 'pointer';
-            select.style.boxShadow = '0 1px 4px rgba(33,150,243,0.08)';
-            select.style.marginLeft = '16px';
-            select.style.marginBottom = '0';
-            select.style.height = '36px';
-            select.style.verticalAlign = 'middle';
-            select.style.transition = 'border-color 0.2s, box-shadow 0.2s';
-            select.onfocus = function () {
-                select.style.borderColor = '#2196F3';
-                select.style.boxShadow = '0 2px 8px #2196f322';
-            };
-            select.onblur = function () {
-                select.style.borderColor = '#e3f2fd';
-                select.style.boxShadow = '0 1px 4px rgba(33,150,243,0.08)';
-            };
-            formatLabels.forEach((f, idx) => {
-                const option = document.createElement('option');
-                option.value = idx;
-                option.textContent = f.label;
-                select.appendChild(option);
-            });
+			let matched = false;
+			for (let pattern of patterns) {
+				const match = input.match(pattern.regex);
+				if (match) {
+					pattern.handler(match);
+					matched = true;
+					break;
+				}
+			}
+			if (!matched) return;
 
-            // 标题右侧插入下拉框，优化间距
-            titleEl.parentNode.style.display = 'flex';
-            titleEl.parentNode.style.alignItems = 'center';
-            titleEl.style.marginRight = '0';
-            titleEl.style.letterSpacing = '0.5px';
-            titleEl.style.marginBottom = '0';
-            if (!titleEl.nextSibling || titleEl.nextSibling.id !== selectId) {
-                titleEl.parentNode.insertBefore(select, titleEl.nextSibling);
-            }
+			sectionEl.style.display = '';
+			titleEl.style.display = '';
 
-            // 输出框样式
-            const formattedBox = document.createElement('div');
-            formattedBox.className = 'formatted-box';
-            formattedBox.style.marginTop = '0';
-            formattedBox.innerHTML = `
-                <div class="formatted-content" id="other-format-content" style="padding-bottom:44px;">
-                    <div id="other-format-value" style="font-size:1.05em;word-break:break-all;">${formatLabels[select.selectedIndex].value}</div>
-                    <button class="copy-btn" id="other-format-copy-btn" style="margin-top:8px;position:absolute;left:0;right:0;bottom:0;border-radius:0 0 8px 8px;">
-                        <i class="fas fa-copy"></i>
-                        <span>${t.copyFormatBtn}</span>
-                    </button>
-                </div>
-            `;
+			const formatLabels = currentLang === 'zh'
+				? [
+					{ label: "用户名:密码@主机:端口", value: `${outputs.username}:${outputs.password}@${outputs.host}:${outputs.port}` },
+					{ label: "协议://主机:端口:用户名:密码", value: `${outputs.protocol}://${outputs.host}:${outputs.port}:${outputs.username}:${outputs.password}` },
+					{ label: "主机:端口@用户名:密码", value: `${outputs.host}:${outputs.port}@${outputs.username}:${outputs.password}` },
+					{ label: "主机:端口:用户名:密码", value: `${outputs.host}:${outputs.port}:${outputs.username}:${outputs.password}` }
+				]
+				: [
+					{ label: "user:pass@host:port", value: `${outputs.username}:${outputs.password}@${outputs.host}:${outputs.port}` },
+					{ label: "protocol://host:port:user:pass", value: `${outputs.protocol}://${outputs.host}:${outputs.port}:${outputs.username}:${outputs.password}` },
+					{ label: "host:port@user:pass", value: `${outputs.host}:${outputs.port}@${outputs.username}:${outputs.password}` },
+					{ label: "host:port:user:pass", value: `${outputs.host}:${outputs.port}:${outputs.username}:${outputs.password}` }
+				];
 
-            // 事件绑定
-            select.onchange = function () {
-                const idx = select.selectedIndex;
-                document.getElementById('other-format-value').textContent = formatLabels[idx].value;
-            };
-            formattedBox.querySelector('#other-format-copy-btn').onclick = function (e) {
-                const idx = select.selectedIndex;
-                handleCopy(e.currentTarget, formatLabels[idx].value);
-            };
-            formattedBox.querySelector('#other-format-copy-btn').onmouseenter = function () {
-                this.style.background = "#1976D2";
-                this.style.boxShadow = "0 4px 14px #1976d233";
-            };
-            formattedBox.querySelector('#other-format-copy-btn').onmouseleave = function () {
-                this.style.background = "#2196F3";
-                this.style.boxShadow = "none";
-            };
-            formattedBox.querySelector('#other-format-copy-btn').onmousedown = function () {
-                this.style.background = "#1565C0";
-            };
-            formattedBox.querySelector('#other-format-copy-btn').onmouseup = function () {
-                this.style.background = "#1976D2";
-            };
+			// 创建下拉框
+			const selectId = 'other-format-select';
+			let select = document.getElementById(selectId);
+			if (select) select.remove();
+			select = document.createElement('select');
+			select.id = selectId;
+			select.style.marginLeft = '16px';
+			select.style.height = '36px';
+			select.style.cursor = 'pointer';
+			formatLabels.forEach((f, idx) => {
+				const option = document.createElement('option');
+				option.value = idx;
+				option.textContent = f.label;
+				select.appendChild(option);
+			});
 
-            listEl.appendChild(formattedBox);
-        }
+			// 在标题右侧插入下拉框
+			titleEl.parentNode.style.display = 'flex';
+			titleEl.parentNode.style.alignItems = 'center';
+			if (!titleEl.nextSibling || titleEl.nextSibling.id !== selectId) {
+				titleEl.parentNode.insertBefore(select, titleEl.nextSibling);
+			}
+
+			// 输出框
+			const formattedBox = document.createElement('div');
+			formattedBox.className = 'formatted-box';
+			formattedBox.innerHTML = `
+				<div class="formatted-content" id="other-format-content">
+					<div id="other-format-value">${formatLabels[select.selectedIndex].value}</div>
+					<button class="copy-btn" id="other-format-copy-btn">
+						<i class="fas fa-copy"></i>
+						<span>${t.copyFormatBtn}</span>
+					</button>
+				</div>
+			`;
+
+			// 绑定事件
+			select.onchange = () => {
+				document.getElementById('other-format-value').textContent = formatLabels[select.selectedIndex].value;
+			};
+			formattedBox.querySelector('#other-format-copy-btn').onclick = e => {
+				handleCopy(e.currentTarget, formatLabels[select.selectedIndex].value);
+			};
+
+			listEl.appendChild(formattedBox);
+		}
+
 
         // 保证切换语言时下拉框也更新
         function setLanguage(lang) {
@@ -2430,7 +2352,7 @@ e.g. curl -x "socks5://user:pass@127.0.0.1:8080" ip-api.com
             formattedBox.innerHTML = `
                 <div class="formatted-content" id="other-format-content" style="padding-bottom:44px;">
                     <div id="other-format-value" style="font-size:1.05em;word-break:break-all;">${formatLabels[select.selectedIndex].value}</div>
-                    <button class="copy-btn" id="other-format-copy-btn" style="margin-top:8px;position:absolute;left:0;right:0;bottom:0;border-radius:0 0 8px 8px;">
+                    <button class="copy-btn" id="other-format-copy-btn">
                         <i class="fas fa-copy"></i>
                         <span>${t.copyFormatBtn}</span>
                     </button>
@@ -2448,11 +2370,9 @@ e.g. curl -x "socks5://user:pass@127.0.0.1:8080" ip-api.com
             };
             formattedBox.querySelector('#other-format-copy-btn').onmouseenter = function () {
                 this.style.background = "#1976D2";
-                this.style.boxShadow = "0 4px 14px #1976d233";
             };
             formattedBox.querySelector('#other-format-copy-btn').onmouseleave = function () {
                 this.style.background = "#2196F3";
-                this.style.boxShadow = "none";
             };
             formattedBox.querySelector('#other-format-copy-btn').onmousedown = function () {
                 this.style.background = "#1565C0";
