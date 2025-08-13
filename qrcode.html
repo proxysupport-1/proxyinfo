@@ -965,372 +965,501 @@
     <button id="back-to-top-btn" title="返回顶部" class="hide">
         <i class="fas fa-arrow-up"></i>
     </button>
-    <script>
-        // 语言切换和二维码相关文本
-        const translations = {
-            zh: {
-                pageTitle: "代理信息二维码转换",
-                inputHeader: "在这里粘贴代理信息",
-                placeholder: "例如：socks5://127.0.0.1:8080:user:pass",
-                helpText: "支持socks5/http代理格式，输入后自动生成二维码。",
-                errorMsg: "无法识别的格式，请检查输入是否正确",
-                qrSectionTitle: "二维码",
-                shadowrocketQRLabel: "ShadowRocket二维码",
-                v2rayQRLabel: "v2ray二维码",
-                hideQRBtn: "隐藏二维码",
-                showQRBtn: "显示二维码",
-                copyResultHeader: "文本复制",
-                copyResultBtn: "复制结果",
-                copyShadowrocketBtn: "复制文本",
-                copyV2rayBtn: "复制文本",
-                copiedConfirmation: "已复制！",
-                referralCorner: "推荐",
-                referralTitleBlack: "稳定可靠的全球",
-                referralTitleBlue: "动静态代理IP",
-                referralDesc: "使用IPFoxy为您提供的长期稳定可靠的代理IP服务<br>让您的线上业务获得无限规模化增长的机会",
-                referralButton: "开始免费试用",
-                footertext: "*本工具为纯前端HTML工具，所有信息均在您本地处理解析"
-            },
-            en: {
-                pageTitle: "Proxy QR Converter",
-                inputHeader: "Paste proxy information here",
-                placeholder: "e.g., socks5://127.0.0.1:8080:user:pass",
-                helpText: "Supports socks5/http proxy format, generates QR code automatically.",
-                errorMsg: "Unrecognized format, please check your input.",
-                qrSectionTitle: "QR Codes",
-                shadowrocketQRLabel: "ShadowRocket QR",
-                v2rayQRLabel: "v2ray QR",
-                hideQRBtn: "Hide QR",
-                showQRBtn: "Show QR",
-                copyResultHeader: "Copy Text",
-                copyResultBtn: "Copy Result",
-                copyShadowrocketBtn: "Copy Text",
-                copyV2rayBtn: "Copy Text",
-                copiedConfirmation: "Copied!",
-                referralCorner: "AD",
-                referralTitleBlack: "Secure and Dependable",
-                referralTitleBlue: "Global Proxy Service",
-                referralDesc: "Utilize the secure proxy services provided by IPFoxy to empower your online business with the opportunity for unlimited scaled growth",
-                referralButton: "Start Free Trial",
-                footertext: "*This tool is a purely front-end HTML tool; all information is processed and parsed locally on your device"
-            }
-        };
+<script>
+/*
+  多语言 + QR 功能（改进版）
+  - 支持从 URL 参数、localStorage 或浏览器语言推断语言
+  - 切换语言会写入 localStorage 与 URL ?lang=
+  - 修复原来部分 UI 文本被硬编码的问题（例如“文本复制”）
+  - 使用 translations 中的标签（protocolLine / hostLine ...）生成格式化文本
+  - 更健壮地处理 input 解析（支持若无协议，或多种 socks/http 前缀）
+  - 增强 DOM 元素存在性检查，避免未定义错误
+*/
 
-        const qrStates = { shadowrocket: true, v2ray: true };
+const translations = {
+    zh: {
+        pageTitle: "代理信息二维码转换",
+        inputHeader: "在这里粘贴代理信息",
+        placeholder: "例如：socks5://127.0.0.1:8080:user:pass",
+        helpText: "支持socks5/http代理格式，输入后自动生成二维码。",
+        errorMsg: "无法识别的格式，请检查输入是否正确",
+        qrSectionTitle: "二维码",
+        shadowrocketQRLabel: "ShadowRocket二维码",
+        v2rayQRLabel: "v2ray二维码",
+        hideQRBtn: "隐藏二维码",
+        showQRBtn: "显示二维码",
+        copyResultHeader: "文本复制",
+        copyResultBtn: "复制结果",
+        protocolLine: "协议: ",
+        hostLine: "主机: ",
+        portLine: "端口: ",
+        usernameLine: "用户: ",
+        passwordLine: "密码: ",
+        copyShadowrocketBtn: "复制文本",
+        copyV2rayBtn: "复制文本",
+        copiedConfirmation: "已复制！",
+        referralCorner: "推荐",
+        referralTitleBlack: "稳定可靠的全球",
+        referralTitleBlue: "动静态代理IP",
+        referralDesc: "使用IPFoxy为您提供的长期稳定可靠的代理IP服务<br>让您的线上业务获得无限规模化增长的机会",
+        referralButton: "开始免费试用",
+        footertext: "*本工具为纯前端HTML工具，所有信息均在您本地处理解析"
+    },
+    en: {
+        pageTitle: "Proxy QR Converter",
+        inputHeader: "Paste proxy information here",
+        placeholder: "e.g., socks5://127.0.0.1:8080:user:pass",
+        helpText: "Supports socks5/http proxy format, generates QR code automatically.",
+        errorMsg: "Unrecognized format, please check your input.",
+        qrSectionTitle: "QR Codes",
+        shadowrocketQRLabel: "ShadowRocket QR",
+        v2rayQRLabel: "v2ray QR",
+        hideQRBtn: "Hide QR",
+        showQRBtn: "Show QR",
+        copyResultHeader: "Copy Text",
+        copyResultBtn: "Copy Result",
+        protocolLine: "Protocol: ",
+        hostLine: "Host: ",
+        portLine: "Port: ",
+        usernameLine: "Username: ",
+        passwordLine: "Password: ",
+        copyShadowrocketBtn: "Copy Text",
+        copyV2rayBtn: "Copy Text",
+        copiedConfirmation: "Copied!",
+        referralCorner: "AD",
+        referralTitleBlack: "Secure and Dependable",
+        referralTitleBlue: "Global Proxy Service",
+        referralDesc: "Utilize the secure proxy services provided by IPFoxy to empower your online business with the opportunity for unlimited scaled growth",
+        referralButton: "Start Free Trial",
+        footertext: "*This tool is a purely front-end HTML tool; all information is processed and parsed locally on your device"
+    }
+};
 
-        function getDefaultLang() {
-            const navLang = (navigator.language || navigator.userLanguage || '').toLowerCase();
-            if (navLang === 'zh-cn' || navLang === 'zh') return 'zh';
-            if (navLang === 'zh-tw' || navLang === 'zh-hk' || navLang === 'zh-hant') return 'zh';
-            return 'en';
+const qrStates = { shadowrocket: true, v2ray: true };
+let currentLang = 'en';
+
+// ---------- i18n helpers ----------
+function elem(id) { return document.getElementById(id); }
+
+function getPreferredLang() {
+    // 优先顺序：URL ?lang= -> localStorage -> navigator.language -> en
+    try {
+        const params = new URLSearchParams(window.location.search);
+        const urlLang = params.get('lang');
+        if (urlLang && translations[urlLang]) return urlLang;
+    } catch (e) {}
+    try {
+        const ls = localStorage.getItem('lang');
+        if (ls && translations[ls]) return ls;
+    } catch (e) {}
+    const nav = (navigator.language || navigator.userLanguage || '').toLowerCase();
+    if (nav.startsWith('zh')) return 'zh';
+    return 'en';
+}
+
+function setQueryParamNoReload(name, value) {
+    try {
+        const url = new URL(window.location);
+        if (value === null || value === undefined) url.searchParams.delete(name);
+        else url.searchParams.set(name, value);
+        window.history.replaceState({}, '', url);
+    } catch (e) {}
+}
+
+function setLanguage(lang) {
+    if (!translations[lang]) return;
+    currentLang = lang;
+    try { localStorage.setItem('lang', lang); } catch (e) {}
+    setQueryParamNoReload('lang', lang);
+    updateLanguageSwitcherActive();
+    updateUI();
+    // 重新解析当前输入
+    const val = elem('proxy-input') ? elem('proxy-input').value : '';
+    if (typeof handleInput === 'function') handleInput(val || '');
+}
+
+function updateLanguageSwitcherActive() {
+    const btnZh = elem('btn-zh');
+    const btnEn = elem('btn-en');
+    if (btnZh) btnZh.classList.toggle('active', currentLang === 'zh');
+    if (btnEn) btnEn.classList.toggle('active', currentLang === 'en');
+}
+
+// ---------- UI 更新 ----------
+function updateUI() {
+    const t = translations[currentLang] || translations['en'];
+
+    if (t.pageTitle) document.title = t.pageTitle;
+    if (elem('page-title')) elem('page-title').textContent = t.pageTitle || '';
+    if (elem('input-header')) elem('input-header').textContent = t.inputHeader || '';
+    if (elem('proxy-input')) elem('proxy-input').placeholder = t.placeholder || '';
+    if (elem('help-text')) elem('help-text').innerHTML = `<i class="fas fa-info-circle"></i> ${t.helpText || ''}`;
+    if (elem('error-msg-text')) elem('error-msg-text').textContent = t.errorMsg || '';
+    if (elem('copy-result-header')) elem('copy-result-header').textContent = t.copyResultHeader || '';
+    if (elem('copy-result-btn')) elem('copy-result-btn').textContent = t.copyResultBtn || '';
+    if (elem('qr-section-title')) elem('qr-section-title').textContent = t.qrSectionTitle || '';
+    if (elem('shadowrocket-qr-label')) elem('shadowrocket-qr-label').textContent = t.shadowrocketQRLabel || '';
+    if (elem('v2ray-qr-label')) elem('v2ray-qr-label').textContent = t.v2rayQRLabel || '';
+    if (elem('toggle-shadowrocket-text')) elem('toggle-shadowrocket-text').textContent = qrStates.shadowrocket ? t.hideQRBtn : t.showQRBtn;
+    if (elem('toggle-v2ray-text')) elem('toggle-v2ray-text').textContent = qrStates.v2ray ? t.hideQRBtn : t.showQRBtn;
+    // 按钮文字：分别为 Shadowrocket / v2ray / 复制结果
+    if (elem('copy-shadowrocket-btn')) elem('copy-shadowrocket-btn').textContent = t.copyShadowrocketBtn || t.copyResultBtn || '';
+    if (elem('copy-v2ray-btn')) elem('copy-v2ray-btn').textContent = t.copyV2rayBtn || t.copyResultBtn || '';
+    if (elem('copy-result-btn')) elem('copy-result-btn').textContent = t.copyResultBtn || '';
+
+    if (elem('referral-corner')) elem('referral-corner').textContent = t.referralCorner || '';
+    if (elem('referral-title-black')) elem('referral-title-black').textContent = t.referralTitleBlack || '';
+    if (elem('referral-title-blue')) elem('referral-title-blue').textContent = t.referralTitleBlue || '';
+    if (elem('referral-desc')) elem('referral-desc').innerHTML = t.referralDesc || '';
+    if (elem('referral-button-text')) elem('referral-button-text').textContent = t.referralButton || '';
+    if (elem('footertext')) elem('footertext').textContent = t.footertext || '';
+
+    // 只读参数影响 input-header 文本（保持翻译）
+    const readonlyValue = getQueryParam('readonly');
+    if (readonlyValue === '1' || readonlyValue === 'true') {
+        if (elem('input-header')) {
+            elem('input-header').textContent = currentLang === 'zh' ? '您的代理信息' : 'Your Proxy Information';
         }
+    }
+}
 
-        let currentLang = getDefaultLang();
+// ---------- URL 参数小工具 ----------
+function getQueryParam(name) {
+    try {
+        const params = new URLSearchParams(window.location.search);
+        return params.get(name);
+    } catch (e) { return null; }
+}
 
-        function updateUI() {
-            const t = translations[currentLang];
-            document.title = t.pageTitle;
-            document.getElementById('page-title').textContent = t.pageTitle;
-            document.getElementById('input-header').textContent = t.inputHeader;
-            document.getElementById('proxy-input').placeholder = t.placeholder;
-            document.getElementById('help-text').innerHTML = `<i class="fas fa-info-circle"></i> ${t.helpText}`;
-            document.getElementById('error-msg-text').textContent = t.errorMsg;
-            document.getElementById('copy-result-header').textContent = t.copyResultHeader;
-            document.getElementById('copy-result-btn').textContent = t.copyResultBtn;
-            document.getElementById('qr-section-title').textContent = t.qrSectionTitle;
-            document.getElementById('shadowrocket-qr-label').textContent = t.shadowrocketQRLabel;
-            document.getElementById('v2ray-qr-label').textContent = t.v2rayQRLabel;
-            document.getElementById('toggle-shadowrocket-text').textContent = qrStates.shadowrocket ? t.hideQRBtn : t.showQRBtn;
-            document.getElementById('toggle-v2ray-text').textContent = qrStates.v2ray ? t.hideQRBtn : t.showQRBtn;
-            document.getElementById('copy-result-header').textContent = "文本复制";
-            document.getElementById('copy-result-btn').textContent = t.copyShadowrocketBtn;
-            document.getElementById('referral-corner').textContent = t.referralCorner;
-            document.getElementById('referral-title-black').textContent = t.referralTitleBlack;
-            document.getElementById('referral-title-blue').textContent = t.referralTitleBlue;
-            document.getElementById('referral-desc').innerHTML = t.referralDesc;
-            document.getElementById('referral-button-text').textContent = t.referralButton;
-            document.getElementById('footertext').textContent = t.footertext;
+// ---------- 解析与生成 QR（更稳健） ----------
+function handleInput(input) {
+    const t = translations[currentLang] || translations['en'];
+    input = (input || '').trim();
+    const qrSection = elem('qr-section');
+    const copyBox = elem('copy-box');
+    const errorElem = elem('error-msg');
 
-            // 判断只读状态，决定 input-header 文本
-            const readonlyValue = getQueryParam('readonly');
-            if (readonlyValue === '1' || readonlyValue === 'true') {
-                document.getElementById('input-header').textContent = currentLang === 'zh' ? '您的代理信息' : 'Your Proxy Information';
-            } else {
-                document.getElementById('input-header').textContent = t.inputHeader;
-            }
+    // hide helpers
+    function showError(show) {
+        if (!errorElem) return;
+        errorElem.style.display = show ? 'flex' : 'none';
+        if (show && elem('error-msg-text')) elem('error-msg-text').textContent = t.errorMsg || '';
+    }
+
+    if (!input) {
+        if (qrSection) qrSection.style.display = 'none';
+        if (copyBox) copyBox.style.display = 'none';
+        if (elem('formatted-text')) elem('formatted-text').textContent = '-';
+        showError(false);
+        return;
+    }
+
+    // 支持前缀 variants
+    let finalProtocol = '';
+    let rest = input;
+    const lower = input.toLowerCase();
+    if (lower.startsWith('socks5://') || lower.startsWith('socks5:')) {
+        finalProtocol = 'socks5';
+        rest = input.replace(/^(socks5:\/{2}|socks5:)/i, '');
+    } else if (lower.startsWith('socks4://') || lower.startsWith('socks4:') || lower.startsWith('socks://')) {
+        finalProtocol = 'socks4';
+        rest = input.replace(/^(socks4:\/{2}|socks4:|socks:\/{2})/i, '');
+    } else if (lower.startsWith('http://') || lower.startsWith('http:')) {
+        finalProtocol = 'http';
+        rest = input.replace(/^(http:\/{2}|http:)/i, '');
+    } else if (lower.startsWith('https://') || lower.startsWith('https:')) {
+        finalProtocol = 'https';
+        rest = input.replace(/^(https:\/{2}|https:)/i, '');
+    } else {
+        // 若无协议，尝试直接解析 host:port:user:pass
+        finalProtocol = ''; // 未指定
+        rest = input;
+    }
+
+    // 解析主机/端口/用户名/密码（按冒号分为最多 4 段）
+    // 支持 host 里含有 IPv6（用 [] 包裹）— 这里尽量简单：优先拆分成 4 段，否则报错
+    const parts = rest.split(':');
+    if (parts.length < 3) {
+        // 不是有效的 host:port:user:pass 格式
+        if (qrSection) qrSection.style.display = 'none';
+        if (copyBox) copyBox.style.display = 'none';
+        showError(true);
+        if (elem('formatted-text')) elem('formatted-text').textContent = '-';
+        return;
+    }
+
+    // 当 parts.length >= 3 时：我们把最后两段作为 user/password（更兼容包含冒号的 host）
+    // 期望结构： host : port : user : pass  （如果超过 4 段，合并前面的为 host）
+    let host = '', port = '', username = '', password = '';
+    if (parts.length === 3) {
+        // host:port:user  -> treat last as password empty
+        [host, port, username] = parts;
+        password = '';
+    } else {
+        // >=4 -> host 可能包含 ":" 的情况，合并前面所有到 host，保留后3或2
+        // 最常见的是 exactly 4
+        if (parts.length === 4) {
+            [host, port, username, password] = parts;
+        } else {
+            // parts.length > 4: 将前 (n-3) 段合并为 host
+            const n = parts.length;
+            host = parts.slice(0, n - 3).join(':');
+            port = parts[n - 3];
+            username = parts[n - 2];
+            password = parts[n - 1];
         }
+    }
 
-        function updateLanguageSwitcherActive() {
-            document.getElementById('btn-zh').classList.toggle('active', currentLang === 'zh');
-            document.getElementById('btn-en').classList.toggle('active', currentLang === 'en');
-        }
+    // If still missing required fields -> error
+    if (!host || !port || username === undefined) {
+        if (qrSection) qrSection.style.display = 'none';
+        if (copyBox) copyBox.style.display = 'none';
+        showError(true);
+        if (elem('formatted-text')) elem('formatted-text').textContent = '-';
+        return;
+    }
 
-        function setLanguage(lang) {
-            currentLang = lang;
-            updateLanguageSwitcherActive();
-            updateUI();
-            handleInput(document.getElementById('proxy-input').value); 
-        }
+    // 组合 QR 文本（仍按你原先思路：base64 编码并生成两种格式）
+    const shadowrocketStr = username + ":" + password + "@" + host + ":" + port;
+    const shadowrocketEncoded = btoa(unescape(encodeURIComponent(shadowrocketStr))); // 兼容 Unicode
+    const protoPrefix = finalProtocol && finalProtocol.startsWith('socks') ? 'socks://' : (finalProtocol && finalProtocol.startsWith('http') ? 'http://' : ''); 
+    const shadowrocketQR = (protoPrefix || '') + shadowrocketEncoded;
 
-        function handleInput(input) {
-            const t = translations[currentLang];
-            input = input.trim();
-            let matched = false;
-            let protocolInput = "";
-            let finalProtocol = "";
-            let host = "", port = "", username = "", password = "";
-            let protocolLabel = "协议: ", hostLabel = "主机: ", portLabel = "端口: ", userLabel = "用户: ", passLabel = "密码: ";
-            if (input.startsWith("socks5://")) {
-                protocolInput = "socks5://";
-                finalProtocol = "socks5";
-            } else if (input.startsWith("http://")) {
-                protocolInput = "http://";
-                finalProtocol = "http";
-            } else {
-                document.getElementById("qr-section").style.display = "none";
-                document.getElementById("copy-box").style.display = "none";
-                document.getElementById("error-msg").style.display = input.length > 0 ? "flex" : "none";
-                document.getElementById("formatted-text").textContent = "-";
-                return;
-            }
-            input = input.substring(protocolInput.length);
-            let parts = input.split(":");
-            if (parts.length !== 4) {
-                document.getElementById("qr-section").style.display = "none";
-                document.getElementById("copy-box").style.display = "none";
-                document.getElementById("error-msg").style.display = input.length > 0 ? "flex" : "none";
-                document.getElementById("formatted-text").textContent = "-";
-                return;
-            }
-            host = parts[0];
-            port = parts[1];
-            username = parts[2];
-            password = parts[3];
-            matched = true;
-            let shadowrocketStr = username + ":" + password + "@" + host + ":" + port;
-            let shadowrocketEncoded = btoa(shadowrocketStr);
-            let shadowrocketQR = (finalProtocol === "socks5" ? "socks://" : "http://") + shadowrocketEncoded;
-            let v2rayStr = username + ":" + password;
-            let v2rayEncoded = btoa(v2rayStr);
-            let v2rayQR = (finalProtocol === "socks5" ? "socks://" : "http://") + v2rayEncoded + "@" + host + ":" + port;
-            document.getElementById("qr-section").style.display = "block";
-            document.getElementById("copy-box").style.display = "block";
-            document.getElementById("error-msg").style.display = "none";
-            document.getElementById("qrcode-shadowrocket").innerHTML = "";
-            document.getElementById("qrcode-v2ray").innerHTML = "";
-            document.getElementById("text-shadowrocket").innerText = shadowrocketQR;
-            document.getElementById("text-v2ray").innerText = v2rayQR;
-            document.getElementById("formatted-text").textContent =
-                protocolLabel + finalProtocol + "\n" +
-                hostLabel + host + "\n" +
-                portLabel + port + "\n" +
-                userLabel + username + "\n" +
-                passLabel + password;
-            new QRCode(document.getElementById("qrcode-shadowrocket"), {
+    const v2rayStr = username + ":" + password;
+    const v2rayEncoded = btoa(unescape(encodeURIComponent(v2rayStr)));
+    const v2rayQR = (protoPrefix || '') + v2rayEncoded + "@" + host + ":" + port;
+
+    // 显示结果
+    if (qrSection) qrSection.style.display = 'block';
+    if (copyBox) copyBox.style.display = 'block';
+    showError(false);
+
+    if (elem('qrcode-shadowrocket')) elem('qrcode-shadowrocket').innerHTML = '';
+    if (elem('qrcode-v2ray')) elem('qrcode-v2ray').innerHTML = '';
+    if (elem('text-shadowrocket')) elem('text-shadowrocket').innerText = shadowrocketQR;
+    if (elem('text-v2ray')) elem('text-v2ray').innerText = v2rayQR;
+
+    const tProtocol = t.protocolLine || 'Protocol: ';
+    const tHost = t.hostLine || 'Host: ';
+    const tPort = t.portLine || 'Port: ';
+    const tUser = t.usernameLine || 'Username: ';
+    const tPass = t.passwordLine || 'Password: ';
+
+    if (elem('formatted-text')) elem('formatted-text').textContent =
+        (tProtocol + (finalProtocol || '-')) + "\n" +
+        (tHost + host) + "\n" +
+        (tPort + port) + "\n" +
+        (tUser + (username || '-')) + "\n" +
+        (tPass + (password || '-'));
+
+    // 生成二维码（假设页面已引入 QRCode 库）
+    try {
+        if (window.QRCode) {
+            new QRCode(elem("qrcode-shadowrocket"), {
                 text: shadowrocketQR,
                 width: 210,
                 height: 210,
                 correctLevel: QRCode.CorrectLevel.Q
             });
-            new QRCode(document.getElementById("qrcode-v2ray"), {
+            new QRCode(elem("qrcode-v2ray"), {
                 text: v2rayQR,
                 width: 210,
                 height: 210,
                 correctLevel: QRCode.CorrectLevel.Q
             });
-            setTimeout(function () {
-                let qrImages1 = document.querySelectorAll("#qrcode-shadowrocket img");
-                qrImages1.forEach(function (img) {
-                    img.style.display = "block";
-                    img.style.margin = "0 auto";
-                    img.style.padding = "10px";
-                    img.style.transition = "box-shadow 0.4s";
-                    img.onmouseenter = () => img.style.boxShadow = "0 6px 24px #33333333";
-                    img.onmouseleave = () => img.style.boxShadow = "";
-                });
-                let qrImages2 = document.querySelectorAll("#qrcode-v2ray img");
-                qrImages2.forEach(function (img) {
-                    img.style.display = "block";
-                    img.style.margin = "0 auto";
-                    img.style.padding = "10px";
-                    img.style.transition = "box-shadow 0.4s";
-                    img.onmouseenter = () => img.style.boxShadow = "0 6px 24px #33333333";
-                    img.onmouseleave = () => img.style.boxShadow = "";
-                });
+            // 小动画样式调整
+            setTimeout(() => {
+                const setStyleFor = (selector) => {
+                    const imgs = document.querySelectorAll(selector + " img");
+                    imgs.forEach(img => {
+                        img.style.display = "block";
+                        img.style.margin = "0 auto";
+                        img.style.padding = "10px";
+                        img.style.transition = "box-shadow 0.4s";
+                        img.onmouseenter = () => img.style.boxShadow = "0 6px 24px #33333333";
+                        img.onmouseleave = () => img.style.boxShadow = "";
+                    });
+                };
+                setStyleFor("#qrcode-shadowrocket");
+                setStyleFor("#qrcode-v2ray");
             }, 10);
-
-            document.getElementById("shadowrocket-qr-outer").classList.toggle('blurred', !qrStates.shadowrocket);
-            document.getElementById("v2ray-qr-outer").classList.toggle('blurred', !qrStates.v2ray);
         }
+    } catch (e) {
+        console.warn('QR generation failed', e);
+    }
 
-        function toggleQR(type) {
-            qrStates[type] = !qrStates[type];
-            const t = translations[currentLang];
-            const outer = document.getElementById(type + '-qr-outer');
-            const textElem = document.getElementById('toggle-' + type + '-text');
-            const iconElem = document.getElementById('toggle-' + type + '-icon');
-            if (!qrStates[type]) {
-                outer.classList.add('blurred');
-                textElem.textContent = t.showQRBtn;
-                if (iconElem) iconElem.className = "fas fa-eye";
-            } else {
-                outer.classList.remove('blurred');
-                textElem.textContent = t.hideQRBtn;
-                if (iconElem) iconElem.className = "fas fa-eye-slash";
-            }
+    // 根据 qrStates 控制模糊显示
+    const outerS = elem('shadowrocket-qr-outer');
+    const outerV = elem('v2ray-qr-outer');
+    if (outerS) outerS.classList.toggle('blurred', !qrStates.shadowrocket);
+    if (outerV) outerV.classList.toggle('blurred', !qrStates.v2ray);
+}
+
+// ---------- 切换单个 QR 可见性 ----------
+function toggleQR(type) {
+    if (!qrStates.hasOwnProperty(type)) return;
+    qrStates[type] = !qrStates[type];
+    const t = translations[currentLang] || translations['en'];
+    const outer = elem(type + '-qr-outer');
+    const textElem = elem('toggle-' + type + '-text');
+    const iconElem = elem('toggle-' + type + '-icon');
+
+    if (!qrStates[type]) {
+        if (outer) outer.classList.add('blurred');
+        if (textElem) textElem.textContent = t.showQRBtn;
+        if (iconElem) iconElem.className = "fas fa-eye";
+    } else {
+        if (outer) outer.classList.remove('blurred');
+        if (textElem) textElem.textContent = t.hideQRBtn;
+        if (iconElem) iconElem.className = "fas fa-eye-slash";
+    }
+}
+
+// ---------- 复制函数（通用） ----------
+function copyTextFromElementId(id, btn) {
+    if (!id) return;
+    const text = (elem(id) ? elem(id).textContent : '') || '';
+    const t = translations[currentLang] || translations['en'];
+    if (!navigator.clipboard) {
+        // 退回：老浏览器的临时 textarea
+        try {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+            if (btn) flashCopied(btn, t.copiedConfirmation);
+        } catch (e) { console.error(e); }
+        return;
+    }
+    navigator.clipboard.writeText(text).then(() => {
+        if (btn) flashCopied(btn, t.copiedConfirmation);
+    }).catch(err => { console.error('复制失败:', err); });
+}
+
+function flashCopied(btn, text) {
+    if (!btn) return;
+    const original = btn.innerHTML;
+    btn.innerHTML = `<i class="fas fa-check"></i> ${text}`;
+    btn.classList.add('copied');
+    setTimeout(() => {
+        try { btn.innerHTML = original; btn.classList.remove('copied'); } catch (e) {}
+    }, 2000);
+}
+
+// ---------- 页面生命周期 ----------
+document.addEventListener('DOMContentLoaded', function () {
+    // 语言初始化
+    currentLang = getPreferredLang();
+    updateLanguageSwitcherActive();
+    updateUI();
+
+    // 绑定语言切换按钮（如果存在）
+    const btnZh = elem('btn-zh');
+    const btnEn = elem('btn-en');
+    if (btnZh) btnZh.addEventListener('click', () => setLanguage('zh'));
+    if (btnEn) btnEn.addEventListener('click', () => setLanguage('en'));
+
+    // 解析 URL 中传入的 proxyinfo / proxy
+    const params = new URLSearchParams(window.location.search);
+    const proxyinfoValue = params.get('proxyinfo');
+    const proxyValue = params.get('proxy');
+    const readonlyValue = params.get('readonly');
+    const inputEl = elem('proxy-input');
+
+    function b64DecodeUnicode(b64) {
+        try {
+            return decodeURIComponent(Array.prototype.map.call(atob(b64), c =>
+                '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+            ).join(''));
+        } catch (e) { return null; }
+    }
+
+    function fromBase64UrlMaybe(s) {
+        if (!s) return null;
+        try {
+            let cleaned = s.trim().replace(/\s+/g, '');
+            try { cleaned = decodeURIComponent(cleaned); } catch (_) {}
+            let b64 = cleaned.replace(/-/g, '+').replace(/_/g, '/');
+            while (b64.length % 4) b64 += '=';
+            return b64DecodeUnicode(b64);
+        } catch {
+            return null;
         }
+    }
 
-        function copyQRText(id, event) {
-            const btn = event.currentTarget;
-            const text = document.getElementById(id).textContent;
-            const t = translations[currentLang];
-            const originalHTML = btn.innerHTML;
-            navigator.clipboard.writeText(text).then(() => {
-                btn.innerHTML = `<i class="fas fa-check"></i> ${t.copiedConfirmation}`;
-                btn.classList.add('copied');
-                setTimeout(() => {
-                    btn.innerHTML = originalHTML;
-                    btn.classList.remove('copied');
-                }, 2000);
-            }).catch(err => {
-                console.error('复制失败:', err);
-            });
+    let decoded = null;
+    if (proxyinfoValue) decoded = fromBase64UrlMaybe(proxyinfoValue);
+    else if (proxyValue) {
+        try { decoded = decodeURIComponent(proxyValue); } catch { decoded = proxyValue; }
+    }
+
+    if (decoded !== null && inputEl) {
+        inputEl.value = decoded;
+        if (typeof handleInput === 'function') handleInput(decoded);
+    }
+
+    // readonly 处理
+    if (readonlyValue === '1' || readonlyValue === 'true') {
+        if (inputEl) {
+            inputEl.setAttribute('readonly', 'readonly');
+            inputEl.style.background = '#eee';
         }
-
-        function copyResult(event) {
-            const btn = event.currentTarget;
-            const text = document.getElementById('formatted-text').textContent;
-            const t = translations[currentLang];
-            const originalHTML = btn.innerHTML;
-            navigator.clipboard.writeText(text).then(() => {
-                btn.innerHTML = `<i class="fas fa-check"></i> ${t.copiedConfirmation}`;
-                btn.classList.add('copied');
-                setTimeout(() => {
-                    btn.innerHTML = originalHTML;
-                    btn.classList.remove('copied');
-                }, 2000);
-            }).catch(err => {
-                console.error('复制失败:', err);
-            });
-        }
-
-        window.onload = function () {
-            updateLanguageSwitcherActive();
-            updateUI();
-        };
-
-        // 读取 URL 参数
-        function getQueryParam(name) {
-            const params = new URLSearchParams(window.location.search);
-            return params.get(name);
-        }
-
-        // 设置 URL 参数（不刷新页面）
-        function setQueryParam(name, value) {
-            const url = new URL(window.location);
-            url.searchParams.set(name, value);
-            window.history.replaceState({}, '', url);
-        }
-
-        // 编码代理信息
-        function encodeProxy(str) {
-            return encodeURIComponent(str || '');
-        }
-
-        // 解码代理信息
-        function decodeProxy(str) {
-            try { return decodeURIComponent(str || ''); } catch (e) { return str || ''; }
-        }
-
-        window.addEventListener('DOMContentLoaded', function () {
-            const params = new URLSearchParams(window.location.search);
-            const proxyinfoValue = params.get('proxyinfo');
-            const proxyValue = params.get('proxy');
-            const readonlyValue = params.get('readonly');
-            const inputEl = document.getElementById('proxy-input');
-
-            function b64DecodeUnicode(b64) {
-                return decodeURIComponent(Array.prototype.map.call(atob(b64), c =>
-                    '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
-                ).join(''));
-            }
-
-            function fromBase64UrlMaybe(s) {
-                if (!s) return null;
-                try {
-                    let cleaned = s.trim().replace(/\s+/g, '');
-                    try { cleaned = decodeURIComponent(cleaned); } catch (_) {}
-                    let b64 = cleaned.replace(/-/g, '+').replace(/_/g, '/');
-                    while (b64.length % 4) b64 += '=';
-                    return b64DecodeUnicode(b64);
-                } catch {
-                    return null;
-                }
-            }
-
-            let decoded = null;
-            if (proxyinfoValue) {
-                decoded = fromBase64UrlMaybe(proxyinfoValue);
-            } else if (proxyValue) {
-                try {
-                    decoded = decodeProxy(proxyValue);
-                } catch {
-                    decoded = proxyValue;
-                }
-            }
-
-            if (decoded !== null) {
-                inputEl.value = decoded;
-                if (typeof handleInput === 'function') handleInput(decoded);
-            }
-
-            if (readonlyValue === '1' || readonlyValue === 'true') {
-                inputEl.setAttribute('readonly', 'readonly');
-                inputEl.style.background = '#eee';
-                return;
-            }
-
+    } else {
+        // 普通输入监听：更新 URL 中的 proxyinfo（Base64URL）
+        if (inputEl) {
             inputEl.addEventListener('input', function (e) {
-                const val = e.target.value;
-
-                const b64EncodeUnicode = str => btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g,
-                    (_, p1) => String.fromCharCode(parseInt(p1, 16))));
-
+                const val = e.target.value || '';
+                const b64EncodeUnicode = str => btoa(unescape(encodeURIComponent(str || '')));
                 const toBase64Url = str => b64EncodeUnicode(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '').trim().replace(/\s+/g, '');
-
                 const encoded = toBase64Url(val);
-
-                // 只写入 proxyinfo 参数，且删除 proxy 参数，避免两个同时存在
-                params.delete('proxy');
-                params.set('proxyinfo', encoded);
-
-                const newUrl = `${window.location.pathname}?${params.toString()}`;
+                // 更新 URL 参数
+                const params2 = new URLSearchParams(window.location.search);
+                params2.delete('proxy');
+                params2.set('proxyinfo', encoded);
+                // 保留 lang & readonly 设置（replaceState 保持当前 path）
+                const newUrl = `${window.location.pathname}?${params2.toString()}`;
                 history.replaceState(null, '', newUrl);
-
                 if (typeof handleInput === 'function') handleInput(val);
             });
-        });
-        
-        // 返回顶部按钮逻辑
-        (function () {
-            var btn = document.getElementById('back-to-top-btn');
-            var lastShow = false;
-            function updateBtn() {
-                var shouldShow = window.scrollY > 200;
-                if (shouldShow !== lastShow) {
-                    btn.classList.remove(shouldShow ? 'hide' : 'show');
-                    btn.classList.add(shouldShow ? 'show' : 'hide');
-                    lastShow = shouldShow;
-                }
+        }
+    }
+
+    // 绑定复制按钮（如果存在）
+    const copyShadowBtn = elem('copy-shadowrocket-btn');
+    if (copyShadowBtn) copyShadowBtn.addEventListener('click', function (e) { copyTextFromElementId('text-shadowrocket', e.currentTarget); });
+    const copyV2Btn = elem('copy-v2ray-btn');
+    if (copyV2Btn) copyV2Btn.addEventListener('click', function (e) { copyTextFromElementId('text-v2ray', e.currentTarget); });
+    const copyResultBtn = elem('copy-result-btn');
+    if (copyResultBtn) copyResultBtn.addEventListener('click', function (e) { copyTextFromElementId('formatted-text', e.currentTarget); });
+
+    // 绑定切换 QR 可见性按钮（如果存在）
+    const toggleS = elem('toggle-shadowrocket-btn');
+    if (toggleS) toggleS.addEventListener('click', () => toggleQR('shadowrocket'));
+    const toggleV = elem('toggle-v2ray-btn');
+    if (toggleV) toggleV.addEventListener('click', () => toggleQR('v2ray'));
+
+    // 返回顶部按键（如果存在）
+    (function () {
+        var btn = elem('back-to-top-btn');
+        if (!btn) return;
+        var lastShow = false;
+        function updateBtn() {
+            var shouldShow = window.scrollY > 200;
+            if (shouldShow !== lastShow) {
+                btn.classList.remove(shouldShow ? 'hide' : 'show');
+                btn.classList.add(shouldShow ? 'show' : 'hide');
+                lastShow = shouldShow;
             }
-            window.addEventListener('scroll', updateBtn);
-            btn.onclick = function () {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            };
-            // 初始化
-            updateBtn();
-        })();
-    </script>
+        }
+        window.addEventListener('scroll', updateBtn);
+        btn.onclick = function () { window.scrollTo({ top: 0, behavior: 'smooth' }); };
+        updateBtn();
+    })();
+});
+</script>
+
 </body>
 
 </html>
