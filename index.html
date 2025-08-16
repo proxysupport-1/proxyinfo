@@ -1156,12 +1156,7 @@ curl -x &quot;协议://用户名:密码@主机:端口&quot; URL
         <i class="fas fa-arrow-up"></i>
     </button>
     <script>
-        function animateOutputValue(id) {
-            const el = document.getElementById(id);
-            el.classList.remove('animated');
-            void el.offsetWidth;
-            el.classList.add('animated');
-        }
+        // 1. translations 定义时直接补充所有字段
         const translations = {
             zh: {
                 pageTitle: "代理信息解析助手",
@@ -1271,1352 +1266,688 @@ e.g. curl -x "socks5://user:pass@127.0.0.1:8080" ip-api.com
         };
 
         const qrStates = { shadowrocket: false, v2ray: false };
+        let currentLang = getDefaultLang();
 
-        // 修改：优先从 URL 参数 lang 获取语言，其次再使用浏览器语言
+        // 2. proxy 解析抽象
+        function parseProxy(input, t) {
+            input = input.trim();
+            let outputs = {
+                protocol: t.unknownProtocol,
+                host: '-',
+                port: '-',
+                username: '-',
+                password: '-'
+            };
+            const patterns = [
+                {
+                    regex: /^(.*?):\/\/(.*?):(\d+):(.*?):(.*)$/,
+                    handler: m => {
+                        outputs.protocol = m[1];
+                        outputs.host = m[2];
+                        outputs.port = m[3];
+                        outputs.username = m[4];
+                        outputs.password = m[5];
+                    }
+                },
+                {
+                    regex: /^(.*?):(\d+):(.*?):(.*)$/,
+                    handler: m => {
+                        outputs.host = m[1];
+                        outputs.port = m[2];
+                        outputs.username = m[3];
+                        outputs.password = m[4];
+                    }
+                },
+                {
+                    regex: /^(.*?):(.*?)@(.*?):(\d+)$/,
+                    handler: m => {
+                        outputs.username = m[1];
+                        outputs.password = m[2];
+                        outputs.host = m[3];
+                        outputs.port = m[4];
+                    }
+                },
+                {
+                    regex: /^(.*?):(.*?):(.*?):(\d+)$/,
+                    handler: m => {
+                        outputs.username = m[1];
+                        outputs.password = m[2];
+                        outputs.host = m[3];
+                        outputs.port = m[4];
+                    }
+                },
+                {
+                    regex: /^(.*?):(\d+)@(.*?):(.*)$/,
+                    handler: m => {
+                        outputs.host = m[1];
+                        outputs.port = m[2];
+                        outputs.username = m[3];
+                        outputs.password = m[4];
+                    }
+                }
+            ];
+            let matched = false;
+            for (let pattern of patterns) {
+                const match = input.match(pattern.regex);
+                if (match) {
+                    pattern.handler(match);
+                    matched = true;
+                    break;
+                }
+            }
+            return { outputs, matched };
+        }
+
+        // 3. UI刷新函数合并
+        function updateUI() {
+            const t = translations[currentLang];
+            // ...缓存所有需要的 dom 元素...
+            const ids = [
+                'page-title', 'input-header', 'proxy-input', 'help-text', 'error-msg-text', 'output-header',
+                'protocol-label', 'host-label', 'port-label', 'username-label', 'password-label',
+                'copy-result-header', 'copy-result-btn', 'curl-header', 'copy-curl-btn', 'format-title',
+                'example1', 'example2', 'example3', 'example4', 'referral-corner', 'referral-title-black',
+                'referral-title-blue', 'referral-desc', 'referral-button-text', 'curl-tooltip',
+                'qr-section-title', 'shadowrocket-qr-label', 'v2ray-qr-label', 'toggle-shadowrocket-text',
+                'toggle-v2ray-text', 'footertext', 'other-format-title'
+            ];
+            const dom = {};
+            ids.forEach(id => dom[id] = document.getElementById(id));
+            document.title = t.pageTitle;
+            dom['page-title'].textContent = t.pageTitle;
+            dom['input-header'].textContent = t.inputHeader;
+            dom['proxy-input'].placeholder = t.placeholder;
+            dom['help-text'].innerHTML = `<i class="fas fa-info-circle"></i> ${t.helpText}`;
+            dom['error-msg-text'].textContent = t.errorMsg;
+            dom['output-header'].textContent = t.outputHeader;
+            dom['protocol-label'].textContent = t.protocolLabel;
+            dom['host-label'].textContent = t.hostLabel;
+            dom['port-label'].textContent = t.portLabel;
+            dom['username-label'].textContent = t.usernameLabel;
+            dom['password-label'].textContent = t.passwordLabel;
+            dom['copy-result-header'].textContent = t.copyResultHeader;
+            dom['copy-result-btn'].textContent = t.copyResultBtn;
+            dom['curl-header'].textContent = t.curlHeader;
+            dom['copy-curl-btn'].textContent = t.copyCurlBtn;
+            dom['format-title'].innerHTML = `<i class="fas fa-lightbulb"></i> ${t.formatTitle}`;
+            dom['example1'].textContent = t.example1;
+            dom['example2'].textContent = t.example2;
+            dom['example3'].textContent = t.example3;
+            dom['example4'].textContent = t.example4;
+            dom['referral-corner'].textContent = t.referralCorner;
+            dom['referral-title-black'].textContent = t.referralTitleBlack;
+            dom['referral-title-blue'].textContent = t.referralTitleBlue;
+            dom['referral-desc'].innerHTML = t.referralDesc;
+            dom['referral-button-text'].textContent = t.referralButton;
+            dom['curl-tooltip'].setAttribute('data-tooltip', t.curlTooltip);
+            dom['qr-section-title'].textContent = t.qrSectionTitle;
+            dom['shadowrocket-qr-label'].textContent = t.shadowrocketQRLabel;
+            dom['v2ray-qr-label'].textContent = t.v2rayQRLabel;
+            dom['toggle-shadowrocket-text'].textContent = qrStates.shadowrocket ? t.hideQRBtn : t.showQRBtn;
+            dom['toggle-v2ray-text'].textContent = qrStates.v2ray ? t.hideQRBtn : t.showQRBtn;
+            dom['footertext'].textContent = t.footertext;
+            dom['other-format-title'].textContent = t.otherFormatTitle;
+            // 只读状态
+            const readonlyValue = getQueryParam('readonly');
+            dom['input-header'].textContent = (readonlyValue === '1' || readonlyValue === 'true')
+                ? (currentLang === 'zh' ? '您的代理信息' : 'Your Proxy Information')
+                : t.inputHeader;
+        }
+
+        function updateLanguageSwitcherActive() {
+            document.getElementById('btn-zh').classList.toggle('active', currentLang === 'zh');
+            document.getElementById('btn-en').classList.toggle('active', currentLang === 'en');
+        }
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            try { setQueryParam('lang', lang); } catch (e) { }
+            updateLanguageSwitcherActive();
+            updateUI();
+            handleInput(document.getElementById('proxy-input').value || '');
+            updateOtherFormats();
+        }
+
+        function handleInput(input) {
+            const t = translations[currentLang];
+            const { outputs, matched } = parseProxy(input, t);
+            const errorMsg = document.getElementById('error-msg');
+            let curlCommand = '';
+            if (outputs.host !== '-' && outputs.port !== '-') {
+                const protocol = (outputs.protocol !== t.unknownProtocol ? outputs.protocol : 'http').toLowerCase();
+                if (protocol === 'socks5') {
+                    curlCommand = `curl -x "socks5h://${outputs.username !== '-' && outputs.password !== '-' ? `${outputs.username}:${outputs.password}@` : ''}${outputs.host}:${outputs.port}" ip-api.com`;
+                } else if (protocol === 'http' || protocol === 'https') {
+                    const auth = outputs.username !== '-' && outputs.password !== '-' ? `${outputs.username}:${outputs.password}@` : '';
+                    curlCommand = `curl -x "${protocol}://${auth}${outputs.host}:${outputs.port}" ip-api.com`;
+                } else {
+                    curlCommand = t.curlError;
+                }
+            } else {
+                curlCommand = t.curlEmpty;
+            }
+            const formatText = `${t.protocolLine}${outputs.protocol.toLowerCase()}\n${t.hostLine}${outputs.host}\n${t.portLine}${outputs.port}\n${t.usernameLine}${outputs.username}\n${t.passwordLine}${outputs.password}`;
+            document.getElementById('protocol').textContent = outputs.protocol.toLowerCase();
+            document.getElementById('host').textContent = outputs.host;
+            document.getElementById('port').textContent = outputs.port;
+            document.getElementById('username').textContent = outputs.username;
+            document.getElementById('password').textContent = outputs.password;
+            document.getElementById('formatted-text').textContent = formatText;
+            document.getElementById('curl-command').textContent = curlCommand;
+            animateOutputValue('protocol');
+            animateOutputValue('host');
+            animateOutputValue('port');
+            animateOutputValue('username');
+            animateOutputValue('password');
+            if (input.length > 0 && !matched) {
+                errorMsg.style.display = 'flex';
+                document.querySelectorAll('.qr-output-value').forEach(el => el.style.color = '#ff4444');
+            } else {
+                errorMsg.style.display = 'none';
+                document.querySelectorAll('.qr-output-value').forEach(el => el.style.color = '#333');
+            }
+            generateQR();
+            updateOtherFormats();
+        }
+
+        function generateQR() {
+            let input = document.getElementById("proxy-input").value.trim();
+            if (!input) {
+                document.getElementById("qr-section").style.display = "none";
+                return;
+            }
+            let protocolInput = "";
+            let finalProtocol = "";
+            if (input.startsWith("socks5://")) {
+                protocolInput = "socks5://";
+                finalProtocol = "socks://";
+            } else if (input.startsWith("http://")) {
+                protocolInput = "http://";
+                finalProtocol = "http://";
+            } else {
+                document.getElementById("qr-section").style.display = "none";
+                return;
+            }
+            input = input.substring(protocolInput.length);
+            let parts = input.split(":");
+            if (parts.length !== 4) {
+                document.getElementById("qr-section").style.display = "none";
+                return;
+            }
+            let host = parts[0],
+                port = parts[1],
+                username = parts[2],
+                password = parts[3];
+            let shadowrocketStr = username + ":" + password + "@" + host + ":" + port;
+            let shadowrocketEncoded = btoa(shadowrocketStr);
+            let shadowrocketQR = finalProtocol + shadowrocketEncoded;
+            let v2rayStr = username + ":" + password;
+            let v2rayEncoded = btoa(v2rayStr);
+            let v2rayQR = finalProtocol + v2rayEncoded + "@" + host + ":" + port;
+            document.getElementById("qr-section").style.display = "block";
+            document.getElementById("qrcode-shadowrocket").innerHTML = "";
+            document.getElementById("qrcode-v2ray").innerHTML = "";
+            document.getElementById("text-shadowrocket").innerText = shadowrocketQR;
+            document.getElementById("text-v2ray").innerText = v2rayQR;
+            new QRCode(document.getElementById("qrcode-shadowrocket"), {
+                text: shadowrocketQR,
+                width: 210,
+                height: 210,
+                correctLevel: QRCode.CorrectLevel.Q
+            });
+            new QRCode(document.getElementById("qrcode-v2ray"), {
+                text: v2rayQR,
+                width: 210,
+                height: 210,
+                correctLevel: QRCode.CorrectLevel.Q
+            });
+            setTimeout(function () {
+                let qrImages1 = document.querySelectorAll("#qrcode-shadowrocket img");
+                qrImages1.forEach(function (img) {
+                    img.style.display = "block";
+                    img.style.margin = "0 auto";
+                    img.style.padding = "10px";
+                    img.style.transition = "box-shadow 0.4s";
+                    img.onmouseenter = () => img.style.boxShadow = "0 6px 24px #33333333";
+                    img.onmouseleave = () => img.style.boxShadow = "";
+                });
+                let qrImages2 = document.querySelectorAll("#qrcode-v2ray img");
+                qrImages2.forEach(function (img) {
+                    img.style.display = "block";
+                    img.style.margin = "0 auto";
+                    img.style.padding = "10px";
+                    img.style.transition = "box-shadow 0.4s";
+                    img.onmouseenter = () => img.style.boxShadow = "0 6px 24px #33333333";
+                    img.onmouseleave = () => img.style.boxShadow = "";
+                });
+            }, 10);
+
+            document.getElementById("shadowrocket-qr-outer").classList.toggle('blurred', !qrStates.shadowrocket);
+            document.getElementById("v2ray-qr-outer").classList.toggle('blurred', !qrStates.v2ray);
+        }
+
+        function toggleQR(type) {
+            qrStates[type] = !qrStates[type];
+            const t = translations[currentLang];
+            const outer = document.getElementById(type + '-qr-outer');
+            const textElem = document.getElementById('toggle-' + type + '-text');
+            const iconElem = document.getElementById('toggle-' + type + '-icon');
+            if (!qrStates[type]) {
+                outer.classList.add('blurred');
+                textElem.textContent = t.showQRBtn;
+                if (iconElem) iconElem.className = "fas fa-eye";
+            } else {
+                outer.classList.remove('blurred');
+                textElem.textContent = t.hideQRBtn;
+                if (iconElem) iconElem.className = "fas fa-eye-slash";
+            }
+        }
+
+        function handleCopy(btn, text) {
+            const t = translations[currentLang];
+            const originalHTML = btn.innerHTML;
+            navigator.clipboard.writeText(text).then(() => {
+                btn.innerHTML = `<i class="fas fa-check"></i> ${t.copiedConfirmation}`;
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.innerHTML = originalHTML;
+                    btn.classList.remove('copied');
+                }, 2000);
+            }).catch(err => {
+                console.error('复制失败:', err);
+            });
+        }
+
+        function copyResult(event) {
+            const btn = event.currentTarget;
+            const text = document.getElementById('formatted-text').textContent;
+            handleCopy(btn, text);
+        }
+
+        function copyCurl(event) {
+            const btn = event.currentTarget;
+            const text = document.getElementById('curl-command').textContent;
+            handleCopy(btn, text);
+        }
+
+        function copyOutputValue(el) {
+            const t = translations[currentLang];
+            const text = el.textContent;
+            if (!text || text === '-') return;
+            const original = el.textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                el.textContent = t.copiedConfirmation;
+                el.style.color = "#1976D2";
+                el.style.fontWeight = "bold";
+                setTimeout(() => {
+                    el.textContent = original;
+                    el.style.color = "";
+                    el.style.fontWeight = "";
+                }, 2000);
+            });
+        }
+
+        function showCopyToast(msg) {
+            var stack = document.getElementById('copy-toast-stack');
+            var toast = document.createElement('div');
+            toast.className = 'copy-toast-item';
+            toast.textContent = msg;
+            stack.appendChild(toast);
+            // 使用 requestAnimationFrame 保证动画触发
+            requestAnimationFrame(function () {
+                toast.classList.add('show');
+            });
+            setTimeout(function () {
+                toast.classList.remove('show');
+                toast.classList.add('hide');
+                // 动画结束后移除元素
+                setTimeout(function () {
+                    toast.style.marginBottom = '0';
+                    setTimeout(function () {
+                        if (toast.parentNode === stack) stack.removeChild(toast);
+                    }, 10);
+                }, 450);
+            }, 2000);
+        }
+
+        function copyOutputItem(item) {
+            // 只复制 value 内容，不包含 label
+            var value = item.querySelector('.output-value');
+            var t = translations[currentLang];
+            if (!value) return;
+            var text = value.textContent;
+            if (!text || !text.trim() || text === '-') return;
+            navigator.clipboard.writeText(text).then(function () {
+                showCopyToast(t.copiedConfirmation);
+            });
+        }
+
+        // 其他格式转换功能
+        function updateOtherFormats() {
+            const t = translations[currentLang];
+            const input = document.getElementById('proxy-input').value.trim();
+            const sectionEl = document.getElementById('other-format-section');
+            const titleEl = document.getElementById('other-format-title');
+            const listEl = document.getElementById('other-format-list');
+            listEl.innerHTML = '';
+            sectionEl.style.display = 'none';
+            titleEl.style.display = 'none';
+
+            if (!input) return;
+
+            let outputs = {
+                protocol: t.unknownProtocol,
+                host: '-',
+                port: '-',
+                username: '-',
+                password: '-'
+            };
+            const patterns = [
+                {
+                    regex: /^(.*?):\/\/(.*?):(\d+):(.*?):(.*)$/,
+                    handler: (match) => {
+                        outputs.protocol = match[1];
+                        outputs.host = match[2];
+                        outputs.port = match[3];
+                        outputs.username = match[4];
+                        outputs.password = match[5];
+                    }
+                },
+                {
+                    regex: /^(.*?):(\d+):(.*?):(.*)$/,
+                    handler: (match) => {
+                        outputs.host = match[1];
+                        outputs.port = match[2];
+                        outputs.username = match[3];
+                        outputs.password = match[4];
+                    }
+                },
+                {
+                    regex: /^(.*?):(.*?)@(.*?):(\d+)$/,
+                    handler: (match) => {
+                        outputs.username = match[1];
+                        outputs.password = match[2];
+                        outputs.host = match[3];
+                        outputs.port = match[4];
+                    }
+                },
+                {
+                    regex: /^(.*?):(.*?):(.*?):(\d+)$/,
+                    handler: (match) => {
+                        outputs.username = match[1];
+                        outputs.password = match[2];
+                        outputs.host = match[3];
+                        outputs.port = match[4];
+                    }
+                },
+                {
+                    regex: /^(.*?):(\d+)@(.*?):(.*)$/,
+                    handler: (match) => {
+                        outputs.host = match[1];
+                        outputs.port = match[2];
+                        outputs.username = match[3];
+                        outputs.password = match[4];
+                    }
+                }
+            ];
+            let matched = false;
+            for (let pattern of patterns) {
+                const match = input.match(pattern.regex);
+                if (match) {
+                    pattern.handler(match);
+                    matched = true;
+                    break;
+                }
+            }
+            if (!matched) return;
+
+            sectionEl.style.display = '';
+            titleEl.style.display = '';
+
+            // 格式标签多语言
+            const formatLabels = currentLang === 'zh'
+                ? [
+                    { label: "用户名:密码@主机:端口", value: `${outputs.username}:${outputs.password}@${outputs.host}:${outputs.port}` },
+                    { label: "协议://主机:端口:用户名:密码", value: `${outputs.protocol}://${outputs.host}:${outputs.port}:${outputs.username}:${outputs.password}` },
+                    { label: "主机:端口@用户名:密码", value: `${outputs.host}:${outputs.port}@${outputs.username}:${outputs.password}` },
+                    { label: "主机:端口:用户名:密码", value: `${outputs.host}:${outputs.port}:${outputs.username}:${outputs.password}` }
+                ]
+                : [
+                    { label: "user:pass@host:port", value: `${outputs.username}:${outputs.password}@${outputs.host}:${outputs.port}` },
+                    { label: "protocol://host:port:user:pass", value: `${outputs.protocol}://${outputs.host}:${outputs.port}:${outputs.username}:${outputs.password}` },
+                    { label: "host:port@user:pass", value: `${outputs.host}:${outputs.port}@${outputs.username}:${outputs.password}` },
+                    { label: "host:port:user:pass", value: `${outputs.host}:${outputs.port}:${outputs.username}:${outputs.password}` }
+                ];
+
+            // 下拉选择美化
+            const selectId = 'other-format-select';
+            let select = document.getElementById(selectId);
+            if (select) select.remove(); // 先移除旧的
+            select = document.createElement('select');
+            select.id = selectId;
+            select.style.fontSize = '1em';
+            select.style.padding = '7px 18px 7px 14px';
+            select.style.borderRadius = '7px';
+            select.style.border = '1.5px solid #e3f2fd';
+            select.style.background = '#f8f9fa';
+            select.style.color = '#1976D2';
+            select.style.fontWeight = '500';
+            select.style.outline = 'none';
+            select.style.cursor = 'pointer';
+            select.style.boxShadow = '0 1px 4px rgba(33,150,243,0.08)';
+            select.style.marginLeft = '16px';
+            select.style.marginBottom = '0';
+            select.style.height = '36px';
+            select.style.verticalAlign = 'middle';
+            select.style.transition = 'border-color 0.2s, box-shadow 0.2s';
+            select.onfocus = function () {
+                select.style.borderColor = '#2196F3';
+                select.style.boxShadow = '0 2px 8px #2196f322';
+            };
+            select.onblur = function () {
+                select.style.borderColor = '#e3f2fd';
+                select.style.boxShadow = '0 1px 4px rgba(33,150,243,0.08)';
+            };
+            formatLabels.forEach((f, idx) => {
+                const option = document.createElement('option');
+                option.value = idx;
+                option.textContent = f.label;
+                select.appendChild(option);
+            });
+
+            // 标题右侧插入下拉框，优化间距
+            titleEl.parentNode.style.display = 'flex';
+            titleEl.parentNode.style.alignItems = 'center';
+            titleEl.style.marginRight = '0';
+            titleEl.style.letterSpacing = '0.5px';
+            titleEl.style.marginBottom = '0';
+            if (!titleEl.nextSibling || titleEl.nextSibling.id !== selectId) {
+                titleEl.parentNode.insertBefore(select, titleEl.nextSibling);
+            }
+
+            // 输出框样式
+            const formattedBox = document.createElement('div');
+            formattedBox.className = 'formatted-box';
+            formattedBox.style.marginTop = '0';
+            formattedBox.innerHTML = `
+                <div class="formatted-content" id="other-format-content" style="padding-bottom:44px;">
+                    <div id="other-format-value" style="font-size:1.05em;word-break:break-all;">${formatLabels[select.selectedIndex].value}</div>
+                    <button class="copy-btn" id="other-format-copy-btn">
+                        <i class="fas fa-copy"></i>
+                        <span>${t.copyFormatBtn}</span>
+                    </button>
+                </div>
+            `;
+
+            // 事件绑定
+            select.onchange = function () {
+                const idx = select.selectedIndex;
+                document.getElementById('other-format-value').textContent = formatLabels[idx].value;
+            };
+            formattedBox.querySelector('#other-format-copy-btn').onclick = function (e) {
+                const idx = select.selectedIndex;
+                handleCopy(e.currentTarget, formatLabels[idx].value);
+            };
+            formattedBox.querySelector('#other-format-copy-btn').onmouseenter = function () {
+                this.style.background = "#1976D2";
+            };
+            formattedBox.querySelector('#other-format-copy-btn').onmouseleave = function () {
+                this.style.background = "#2196F3";
+            };
+            formattedBox.querySelector('#other-format-copy-btn').onmousedown = function () {
+                this.style.background = "#1565C0";
+            };
+            formattedBox.querySelector('#other-format-copy-btn').onmouseup = function () {
+                this.style.background = "#1976D2";
+            };
+
+            listEl.appendChild(formattedBox);
+        }
+
+        // 保证切换语言时下拉框也更新
+        function setLanguage(lang) {
+            currentLang = lang;
+            try {
+                setQueryParam('lang', lang);
+            } catch (e) { console.warn('setQueryParam failed', e); }
+            updateLanguageSwitcherActive();
+            updateUI();
+            handleInput(document.getElementById('proxy-input').value);
+            updateOtherFormats();
+        }
+
+        window.addEventListener('DOMContentLoaded', function () {
+            updateLanguageSwitcherActive();
+            updateUI();
+            handleInput(document.getElementById('proxy-input').value);
+            updateOtherFormats();
+            const params = new URLSearchParams(window.location.search);
+            const proxyinfoValue = params.get('proxyinfo');
+            const proxyValue = params.get('proxy');
+            const readonlyValue = params.get('readonly');
+            const inputEl = document.getElementById('proxy-input');
+
+            function b64DecodeUnicode(b64) {
+                return decodeURIComponent(Array.prototype.map.call(atob(b64), c =>
+                    '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+                ).join(''));
+            }
+
+            function fromBase64UrlMaybe(s) {
+                if (!s) return null;
+                try {
+                    let cleaned = s.trim().replace(/\s+/g, '');
+                    try { cleaned = decodeURIComponent(cleaned); } catch (_) { }
+                    let b64 = cleaned.replace(/-/g, '+').replace(/_/g, '/');
+                    while (b64.length % 4) b64 += '=';
+                    return b64DecodeUnicode(b64);
+                } catch {
+                    return null;
+                }
+            }
+
+            let decoded = null;
+            if (proxyinfoValue) {
+                decoded = fromBase64UrlMaybe(proxyinfoValue);
+            } else if (proxyValue) {
+                try {
+                    decoded = decodeProxy(proxyValue);
+                } catch {
+                    decoded = proxyValue;
+                }
+            }
+
+            if (decoded !== null) {
+                inputEl.value = decoded;
+                if (typeof handleInput === 'function') handleInput(decoded);
+            }
+
+            if (readonlyValue === '1' || readonlyValue === 'true') {
+                inputEl.setAttribute('readonly', 'readonly');
+                inputEl.style.background = '#eee';
+                return;
+            }
+
+            inputEl.addEventListener('input', function (e) {
+                const val = e.target.value;
+
+                const b64EncodeUnicode = str => btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g,
+                    (_, p1) => String.fromCharCode(parseInt(p1, 16))));
+
+                const toBase64Url = str => b64EncodeUnicode(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '').trim().replace(/\s+/g, '');
+
+                const encoded = toBase64Url(val);
+
+                // 只写入 proxyinfo 参数，且删除 proxy 参数，避免两个同时存在
+                params.delete('proxy');
+                params.set('proxyinfo', encoded);
+
+                const newUrl = `${window.location.pathname}?${params.toString()}`;
+                history.replaceState(null, '', newUrl);
+
+                if (typeof handleInput === 'function') handleInput(val);
+            });
+        });
+
+        // 返回顶部按钮逻辑
+        (function () {
+            var btn = document.getElementById('back-to-top-btn');
+            var lastShow = false;
+            function updateBtn() {
+                var shouldShow = window.scrollY > 200;
+                if (shouldShow !== lastShow) {
+                    btn.classList.remove(shouldShow ? 'hide' : 'show');
+                    btn.classList.add(shouldShow ? 'show' : 'hide');
+                    lastShow = shouldShow;
+                }
+            }
+            window.addEventListener('scroll', updateBtn);
+            btn.onclick = function () {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            };
+            // 初始化
+            updateBtn();
+        })();
+
+        // 补充缺失的辅助函数
         function getDefaultLang() {
             try {
                 const params = new URLSearchParams(window.location.search);
                 const langParam = (params.get('lang') || '').toLowerCase();
                 if (langParam === 'zh' || langParam === 'en') return langParam;
-            } catch (e) {
-                // ignore
-            }
+            } catch (e) {}
             const navLang = (navigator.language || navigator.userLanguage || '').toLowerCase();
             if (navLang === 'zh-cn' || navLang === 'zh' || navLang.startsWith('zh')) return 'zh';
             return 'en';
         }
 
-        let currentLang = getDefaultLang();
-
-        function updateUI() {
-            const t = translations[currentLang];
-            document.title = t.pageTitle;
-            document.getElementById('page-title').textContent = t.pageTitle;
-            document.getElementById('input-header').textContent = t.inputHeader;
-            document.getElementById('proxy-input').placeholder = t.placeholder;
-            document.getElementById('help-text').innerHTML = `<i class="fas fa-info-circle"></i> ${t.helpText}`;
-            document.getElementById('error-msg-text').textContent = t.errorMsg;
-            document.getElementById('output-header').textContent = t.outputHeader;
-            document.getElementById('protocol-label').textContent = t.protocolLabel;
-            document.getElementById('host-label').textContent = t.hostLabel;
-            document.getElementById('port-label').textContent = t.portLabel;
-            document.getElementById('username-label').textContent = t.usernameLabel;
-            document.getElementById('password-label').textContent = t.passwordLabel;
-            document.getElementById('copy-result-header').textContent = t.copyResultHeader;
-            document.getElementById('copy-result-btn').textContent = t.copyResultBtn;
-            document.getElementById('curl-header').textContent = t.curlHeader;
-            document.getElementById('copy-curl-btn').textContent = t.copyCurlBtn;
-            document.getElementById('format-title').innerHTML = `<i class="fas fa-lightbulb"></i> ${t.formatTitle}`;
-            document.getElementById('example1').textContent = t.example1;
-            document.getElementById('example2').textContent = t.example2;
-            document.getElementById('example3').textContent = t.example3;
-            document.getElementById('example4').textContent = t.example4;
-            document.getElementById('referral-corner').textContent = t.referralCorner;
-            document.getElementById('referral-title-black').textContent = t.referralTitleBlack;
-            document.getElementById('referral-title-blue').textContent = t.referralTitleBlue;
-            document.getElementById('referral-desc').innerHTML = t.referralDesc;
-            document.getElementById('referral-button-text').textContent = t.referralButton;
-            document.getElementById('curl-tooltip').setAttribute('data-tooltip', t.curlTooltip);
-            document.getElementById('qr-section-title').textContent = t.qrSectionTitle;
-            document.getElementById('shadowrocket-qr-label').textContent = t.shadowrocketQRLabel;
-            document.getElementById('v2ray-qr-label').textContent = t.v2rayQRLabel;
-            document.getElementById('toggle-shadowrocket-text').textContent = qrStates.shadowrocket ? t.hideQRBtn : t.showQRBtn;
-            document.getElementById('toggle-v2ray-text').textContent = qrStates.v2ray ? t.hideQRBtn : t.showQRBtn;
-            document.getElementById('footertext').textContent = t.footertext;
-            document.getElementById('other-format-title').textContent = t.otherFormatTitle;
-
-            // 判断只读状态，决定 input-header 文本
-            const readonlyValue = getQueryParam('readonly');
-            if (readonlyValue === '1' || readonlyValue === 'true') {
-                document.getElementById('input-header').textContent = currentLang === 'zh' ? '您的代理信息' : 'Your Proxy Information';
-            } else {
-                document.getElementById('input-header').textContent = t.inputHeader;
-            }
-        }
-
-        function updateLanguageSwitcherActive() {
-            document.getElementById('btn-zh').classList.toggle('active', currentLang === 'zh');
-            document.getElementById('btn-en').classList.toggle('active', currentLang === 'en');
-        }
-
-        // 修改：在切换语言时把 lang 写入 URL（保留其它参数）
-        function setLanguage(lang) {
-            currentLang = lang;
-            // 将 lang 参数写入 URL（保留其它参数）
-            try {
-                setQueryParam('lang', lang);
-            } catch (e) {
-                // 在极少数环境中可能不支持 history.replaceState，忽略错误
-                console.warn('setQueryParam failed', e);
-            }
-            updateLanguageSwitcherActive();
-            updateUI();
-            // 重新解析并刷新转换模块
-            if (typeof handleInput === 'function') handleInput(document.getElementById('proxy-input').value || '');
-            if (typeof updateOtherFormats === 'function') updateOtherFormats();
-        }
-
-        function handleInput(input) {
-            const t = translations[currentLang];
-            const outputs = {
-                protocol: t.unknownProtocol,
-                host: '-',
-                port: '-',
-                username: '-',
-                password: '-'
-            };
-            const errorMsg = document.getElementById('error-msg');
-            input = input.trim();
-            let matched = false;
-            const patterns = [
-                {
-                    regex: /^(.*?):\/\/(.*?):(\d+):(.*?):(.*)$/,
-                    handler: (match) => {
-                        outputs.protocol = match[1];
-                        outputs.host = match[2];
-                        outputs.port = match[3];
-                        outputs.username = match[4];
-                        outputs.password = match[5];
-                    }
-                },
-                {
-                    regex: /^(.*?):(\d+):(.*?):(.*)$/,
-                    handler: (match) => {
-                        outputs.host = match[1];
-                        outputs.port = match[2];
-                        outputs.username = match[3];
-                        outputs.password = match[4];
-                    }
-                },
-                {
-                    regex: /^(.*?):(.*?)@(.*?):(\d+)$/,
-                    handler: (match) => {
-                        outputs.username = match[1];
-                        outputs.password = match[2];
-                        outputs.host = match[3];
-                        outputs.port = match[4];
-                    }
-                },
-                {
-                    regex: /^(.*?):(.*?):(.*?):(\d+)$/,
-                    handler: (match) => {
-                        outputs.username = match[1];
-                        outputs.password = match[2];
-                        outputs.host = match[3];
-                        outputs.port = match[4];
-                    }
-                },
-                {
-                    regex: /^(.*?):(\d+)@(.*?):(.*)$/,
-                    handler: (match) => {
-                        outputs.host = match[1];
-                        outputs.port = match[2];
-                        outputs.username = match[3];
-                        outputs.password = match[4];
-                    }
-                }
-            ];
-            for (let pattern of patterns) {
-                const match = input.match(pattern.regex);
-                if (match) {
-                    pattern.handler(match);
-                    matched = true;
-                    break;
-                }
-            }
-            let curlCommand = '';
-            if (outputs.host !== '-' && outputs.port !== '-') {
-                const protocol = (outputs.protocol !== t.unknownProtocol ? outputs.protocol : 'http').toLowerCase();
-                if (protocol === 'socks5') {
-                    curlCommand = `curl -x "socks5h://${outputs.username !== '-' && outputs.password !== '-' ? `${outputs.username}:${outputs.password}@` : ''}${outputs.host}:${outputs.port}" ip-api.com`;
-                } else if (protocol === 'http' || protocol === 'https') {
-                    const auth = outputs.username !== '-' && outputs.password !== '-' ? `${outputs.username}:${outputs.password}@` : '';
-                    curlCommand = `curl -x "${protocol}://${auth}${outputs.host}:${outputs.port}" ip-api.com`;
-                } else {
-                    curlCommand = t.curlError;
-                }
-            } else {
-                curlCommand = t.curlEmpty;
-            }
-            const formatText = `${t.protocolLine}${outputs.protocol.toLowerCase()}\n${t.hostLine}${outputs.host}\n${t.portLine}${outputs.port}\n${t.usernameLine}${outputs.username}\n${t.passwordLine}${outputs.password}`;
-            document.getElementById('protocol').textContent = outputs.protocol.toLowerCase();
-            document.getElementById('host').textContent = outputs.host;
-            document.getElementById('port').textContent = outputs.port;
-            document.getElementById('username').textContent = outputs.username;
-            document.getElementById('password').textContent = outputs.password;
-            document.getElementById('formatted-text').textContent = formatText;
-            document.getElementById('curl-command').textContent = curlCommand;
-            animateOutputValue('protocol');
-            animateOutputValue('host');
-            animateOutputValue('port');
-            animateOutputValue('username');
-            animateOutputValue('password');
-            if (input.length > 0 && !matched) {
-                errorMsg.style.display = 'flex';
-                document.querySelectorAll('.qr-output-value').forEach(el => {
-                    el.style.color = '#ff4444';
-                });
-            } else {
-                errorMsg.style.display = 'none';
-                document.querySelectorAll('.qr-output-value').forEach(el => {
-                    el.style.color = '#333';
-                });
-            }
-            generateQR();
-            updateOtherFormats(); // 保证格式转换模块正常显示
-        }
-
-        function generateQR() {
-            let input = document.getElementById("proxy-input").value.trim();
-            if (!input) {
-                document.getElementById("qr-section").style.display = "none";
-                return;
-            }
-            let protocolInput = "";
-            let finalProtocol = "";
-            if (input.startsWith("socks5://")) {
-                protocolInput = "socks5://";
-                finalProtocol = "socks://";
-            } else if (input.startsWith("http://")) {
-                protocolInput = "http://";
-                finalProtocol = "http://";
-            } else {
-                document.getElementById("qr-section").style.display = "none";
-                return;
-            }
-            input = input.substring(protocolInput.length);
-            let parts = input.split(":");
-            if (parts.length !== 4) {
-                document.getElementById("qr-section").style.display = "none";
-                return;
-            }
-            let host = parts[0],
-                port = parts[1],
-                username = parts[2],
-                password = parts[3];
-            let shadowrocketStr = username + ":" + password + "@" + host + ":" + port;
-            let shadowrocketEncoded = btoa(shadowrocketStr);
-            let shadowrocketQR = finalProtocol + shadowrocketEncoded;
-            let v2rayStr = username + ":" + password;
-            let v2rayEncoded = btoa(v2rayStr);
-            let v2rayQR = finalProtocol + v2rayEncoded + "@" + host + ":" + port;
-            document.getElementById("qr-section").style.display = "block";
-            document.getElementById("qrcode-shadowrocket").innerHTML = "";
-            document.getElementById("qrcode-v2ray").innerHTML = "";
-            document.getElementById("text-shadowrocket").innerText = shadowrocketQR;
-            document.getElementById("text-v2ray").innerText = v2rayQR;
-            new QRCode(document.getElementById("qrcode-shadowrocket"), {
-                text: shadowrocketQR,
-                width: 210,
-                height: 210,
-                correctLevel: QRCode.CorrectLevel.Q
-            });
-            new QRCode(document.getElementById("qrcode-v2ray"), {
-                text: v2rayQR,
-                width: 210,
-                height: 210,
-                correctLevel: QRCode.CorrectLevel.Q
-            });
-            setTimeout(function () {
-                let qrImages1 = document.querySelectorAll("#qrcode-shadowrocket img");
-                qrImages1.forEach(function (img) {
-                    img.style.display = "block";
-                    img.style.margin = "0 auto";
-                    img.style.padding = "10px";
-                    img.style.transition = "box-shadow 0.4s";
-                    img.onmouseenter = () => img.style.boxShadow = "0 6px 24px #33333333";
-                    img.onmouseleave = () => img.style.boxShadow = "";
-                });
-                let qrImages2 = document.querySelectorAll("#qrcode-v2ray img");
-                qrImages2.forEach(function (img) {
-                    img.style.display = "block";
-                    img.style.margin = "0 auto";
-                    img.style.padding = "10px";
-                    img.style.transition = "box-shadow 0.4s";
-                    img.onmouseenter = () => img.style.boxShadow = "0 6px 24px #33333333";
-                    img.onmouseleave = () => img.style.boxShadow = "";
-                });
-            }, 10);
-
-            document.getElementById("shadowrocket-qr-outer").classList.toggle('blurred', !qrStates.shadowrocket);
-            document.getElementById("v2ray-qr-outer").classList.toggle('blurred', !qrStates.v2ray);
-        }
-
-        function toggleQR(type) {
-            qrStates[type] = !qrStates[type];
-            const t = translations[currentLang];
-            const outer = document.getElementById(type + '-qr-outer');
-            const textElem = document.getElementById('toggle-' + type + '-text');
-            const iconElem = document.getElementById('toggle-' + type + '-icon');
-            if (!qrStates[type]) {
-                outer.classList.add('blurred');
-                textElem.textContent = t.showQRBtn;
-                if (iconElem) iconElem.className = "fas fa-eye";
-            } else {
-                outer.classList.remove('blurred');
-                textElem.textContent = t.hideQRBtn;
-                if (iconElem) iconElem.className = "fas fa-eye-slash";
-            }
-        }
-
-        function handleCopy(btn, text) {
-            const t = translations[currentLang];
-            const originalHTML = btn.innerHTML;
-            navigator.clipboard.writeText(text).then(() => {
-                btn.innerHTML = `<i class="fas fa-check"></i> ${t.copiedConfirmation}`;
-                btn.classList.add('copied');
-                setTimeout(() => {
-                    btn.innerHTML = originalHTML;
-                    btn.classList.remove('copied');
-                }, 2000);
-            }).catch(err => {
-                console.error('复制失败:', err);
-            });
-        }
-
-        function copyResult(event) {
-            const btn = event.currentTarget;
-            const text = document.getElementById('formatted-text').textContent;
-            handleCopy(btn, text);
-        }
-
-        function copyCurl(event) {
-            const btn = event.currentTarget;
-            const text = document.getElementById('curl-command').textContent;
-            handleCopy(btn, text);
-        }
-
-        function copyOutputValue(el) {
-            const t = translations[currentLang];
-            const text = el.textContent;
-            if (!text || text === '-') return;
-            const original = el.textContent;
-            navigator.clipboard.writeText(text).then(() => {
-                el.textContent = t.copiedConfirmation;
-                el.style.color = "#1976D2";
-                el.style.fontWeight = "bold";
-                setTimeout(() => {
-                    el.textContent = original;
-                    el.style.color = "";
-                    el.style.fontWeight = "";
-                }, 2000);
-            });
-        }
-
-        function showCopyToast(msg) {
-            var stack = document.getElementById('copy-toast-stack');
-            var toast = document.createElement('div');
-            toast.className = 'copy-toast-item';
-            toast.textContent = msg;
-            stack.appendChild(toast);
-            // 使用 requestAnimationFrame 保证动画触发
-            requestAnimationFrame(function () {
-                toast.classList.add('show');
-            });
-            setTimeout(function () {
-                toast.classList.remove('show');
-                toast.classList.add('hide');
-                // 动画结束后移除元素
-                setTimeout(function () {
-                    toast.style.marginBottom = '0';
-                    setTimeout(function () {
-                        if (toast.parentNode === stack) stack.removeChild(toast);
-                    }, 10);
-                }, 450);
-            }, 2000);
-        }
-
-        function copyOutputItem(item) {
-            // 只复制 value 内容，不包含 label
-            var value = item.querySelector('.output-value');
-            var t = translations[currentLang];
-            if (!value) return;
-            var text = value.textContent;
-            if (!text || !text.trim() || text === '-') return;
-            navigator.clipboard.writeText(text).then(function () {
-                showCopyToast(t.copiedConfirmation);
-            });
-        }
-
-        // 其他格式转换功能
-        function updateOtherFormats() {
-            const t = translations[currentLang];
-            const input = document.getElementById('proxy-input').value.trim();
-            const sectionEl = document.getElementById('other-format-section');
-            const titleEl = document.getElementById('other-format-title');
-            const listEl = document.getElementById('other-format-list');
-            listEl.innerHTML = '';
-            sectionEl.style.display = 'none';
-            titleEl.style.display = 'none';
-
-            if (!input) return;
-
-            let outputs = {
-                protocol: t.unknownProtocol,
-                host: '-',
-                port: '-',
-                username: '-',
-                password: '-'
-            };
-            const patterns = [
-                {
-                    regex: /^(.*?):\/\/(.*?):(\d+):(.*?):(.*)$/,
-                    handler: (match) => {
-                        outputs.protocol = match[1];
-                        outputs.host = match[2];
-                        outputs.port = match[3];
-                        outputs.username = match[4];
-                        outputs.password = match[5];
-                    }
-                },
-                {
-                    regex: /^(.*?):(\d+):(.*?):(.*)$/,
-                    handler: (match) => {
-                        outputs.host = match[1];
-                        outputs.port = match[2];
-                        outputs.username = match[3];
-                        outputs.password = match[4];
-                    }
-                },
-                {
-                    regex: /^(.*?):(.*?)@(.*?):(\d+)$/,
-                    handler: (match) => {
-                        outputs.username = match[1];
-                        outputs.password = match[2];
-                        outputs.host = match[3];
-                        outputs.port = match[4];
-                    }
-                },
-                {
-                    regex: /^(.*?):(.*?):(.*?):(\d+)$/,
-                    handler: (match) => {
-                        outputs.username = match[1];
-                        outputs.password = match[2];
-                        outputs.host = match[3];
-                        outputs.port = match[4];
-                    }
-                },
-                {
-                    regex: /^(.*?):(\d+)@(.*?):(.*)$/,
-                    handler: (match) => {
-                        outputs.host = match[1];
-                        outputs.port = match[2];
-                        outputs.username = match[3];
-                        outputs.password = match[4];
-                    }
-                }
-            ];
-            let matched = false;
-            for (let pattern of patterns) {
-                const match = input.match(pattern.regex);
-                if (match) {
-                    pattern.handler(match);
-                    matched = true;
-                    break;
-                }
-            }
-            if (!matched) return;
-
-            sectionEl.style.display = '';
-            titleEl.style.display = '';
-
-            // 格式标签多语言
-            const formatLabels = currentLang === 'zh'
-                ? [
-                    { label: "用户名:密码@主机:端口", value: `${outputs.username}:${outputs.password}@${outputs.host}:${outputs.port}` },
-                    { label: "协议://主机:端口:用户名:密码", value: `${outputs.protocol}://${outputs.host}:${outputs.port}:${outputs.username}:${outputs.password}` },
-                    { label: "主机:端口@用户名:密码", value: `${outputs.host}:${outputs.port}@${outputs.username}:${outputs.password}` },
-                    { label: "主机:端口:用户名:密码", value: `${outputs.host}:${outputs.port}:${outputs.username}:${outputs.password}` }
-                ]
-                : [
-                    { label: "user:pass@host:port", value: `${outputs.username}:${outputs.password}@${outputs.host}:${outputs.port}` },
-                    { label: "protocol://host:port:user:pass", value: `${outputs.protocol}://${outputs.host}:${outputs.port}:${outputs.username}:${outputs.password}` },
-                    { label: "host:port@user:pass", value: `${outputs.host}:${outputs.port}@${outputs.username}:${outputs.password}` },
-                    { label: "host:port:user:pass", value: `${outputs.host}:${outputs.port}:${outputs.username}:${outputs.password}` }
-                ];
-
-            // 下拉选择美化
-            const selectId = 'other-format-select';
-            let select = document.getElementById(selectId);
-            if (select) select.remove(); // 先移除旧的
-            select = document.createElement('select');
-            select.id = selectId;
-            select.style.fontSize = '1em';
-            select.style.padding = '7px 18px 7px 14px';
-            select.style.borderRadius = '7px';
-            select.style.border = '1.5px solid #e3f2fd';
-            select.style.background = '#f8f9fa';
-            select.style.color = '#1976D2';
-            select.style.fontWeight = '500';
-            select.style.outline = 'none';
-            select.style.cursor = 'pointer';
-            select.style.boxShadow = '0 1px 4px rgba(33,150,243,0.08)';
-            select.style.marginLeft = '16px';
-            select.style.marginBottom = '0';
-            select.style.height = '36px';
-            select.style.verticalAlign = 'middle';
-            select.style.transition = 'border-color 0.2s, box-shadow 0.2s';
-            select.onfocus = function () {
-                select.style.borderColor = '#2196F3';
-                select.style.boxShadow = '0 2px 8px #2196f322';
-            };
-            select.onblur = function () {
-                select.style.borderColor = '#e3f2fd';
-                select.style.boxShadow = '0 1px 4px rgba(33,150,243,0.08)';
-            };
-            formatLabels.forEach((f, idx) => {
-                const option = document.createElement('option');
-                option.value = idx;
-                option.textContent = f.label;
-                select.appendChild(option);
-            });
-
-            // 标题右侧插入下拉框，优化间距
-            titleEl.parentNode.style.display = 'flex';
-            titleEl.parentNode.style.alignItems = 'center';
-            titleEl.style.marginRight = '0';
-            titleEl.style.letterSpacing = '0.5px';
-            titleEl.style.marginBottom = '0';
-            if (!titleEl.nextSibling || titleEl.nextSibling.id !== selectId) {
-                titleEl.parentNode.insertBefore(select, titleEl.nextSibling);
-            }
-
-            // 输出框样式
-            const formattedBox = document.createElement('div');
-            formattedBox.className = 'formatted-box';
-            formattedBox.style.marginTop = '0';
-            formattedBox.innerHTML = `
-                <div class="formatted-content" id="other-format-content" style="padding-bottom:44px;">
-                    <div id="other-format-value" style="font-size:1.05em;word-break:break-all;">${formatLabels[select.selectedIndex].value}</div>
-                    <button class="copy-btn" id="other-format-copy-btn">
-                        <i class="fas fa-copy"></i>
-                        <span>${t.copyFormatBtn}</span>
-                    </button>
-                </div>
-            `;
-
-            // 事件绑定
-            select.onchange = function () {
-                const idx = select.selectedIndex;
-                document.getElementById('other-format-value').textContent = formatLabels[idx].value;
-            };
-            formattedBox.querySelector('#other-format-copy-btn').onclick = function (e) {
-                const idx = select.selectedIndex;
-                handleCopy(e.currentTarget, formatLabels[idx].value);
-            };
-            formattedBox.querySelector('#other-format-copy-btn').onmouseenter = function () {
-                this.style.background = "#1976D2";
-            };
-            formattedBox.querySelector('#other-format-copy-btn').onmouseleave = function () {
-                this.style.background = "#2196F3";
-            };
-            formattedBox.querySelector('#other-format-copy-btn').onmousedown = function () {
-                this.style.background = "#1565C0";
-            };
-            formattedBox.querySelector('#other-format-copy-btn').onmouseup = function () {
-                this.style.background = "#1976D2";
-            };
-
-            listEl.appendChild(formattedBox);
-        }
-
-        // 保证切换语言时下拉框也更新
-        function setLanguage(lang) {
-            currentLang = lang;
-            try {
-                setQueryParam('lang', lang);
-            } catch (e) { console.warn('setQueryParam failed', e); }
-            updateLanguageSwitcherActive();
-            updateUI();
-            handleInput(document.getElementById('proxy-input').value);
-            updateOtherFormats();
-        }
-
-        window.onload = function () {
-            updateLanguageSwitcherActive();
-            updateUI();
-            handleInput(document.getElementById('proxy-input').value);
-            updateOtherFormats(); // 页面初始化时也刷新
-        };
-        // 读取 URL 参数
         function getQueryParam(name) {
             const params = new URLSearchParams(window.location.search);
             return params.get(name);
         }
 
-        // 设置 URL 参数（不刷新页面）
         function setQueryParam(name, value) {
             const url = new URL(window.location);
             url.searchParams.set(name, value);
             window.history.replaceState({}, '', url);
         }
 
-        // 编码代理信息
         function encodeProxy(str) {
             return encodeURIComponent(str || '');
         }
 
-        // 解码代理信息
         function decodeProxy(str) {
             try { return decodeURIComponent(str || ''); } catch (e) { return str || ''; }
         }
 
-        window.addEventListener('DOMContentLoaded', function () {
-            const params = new URLSearchParams(window.location.search);
-            const proxyinfoValue = params.get('proxyinfo');
-            const proxyValue = params.get('proxy');
-            const readonlyValue = params.get('readonly');
-            const inputEl = document.getElementById('proxy-input');
-
-            function b64DecodeUnicode(b64) {
-                return decodeURIComponent(Array.prototype.map.call(atob(b64), c =>
-                    '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
-                ).join(''));
-            }
-
-            function fromBase64UrlMaybe(s) {
-                if (!s) return null;
-                try {
-                    let cleaned = s.trim().replace(/\s+/g, '');
-                    try { cleaned = decodeURIComponent(cleaned); } catch (_) { }
-                    let b64 = cleaned.replace(/-/g, '+').replace(/_/g, '/');
-                    while (b64.length % 4) b64 += '=';
-                    return b64DecodeUnicode(b64);
-                } catch {
-                    return null;
-                }
-            }
-
-            let decoded = null;
-            if (proxyinfoValue) {
-                decoded = fromBase64UrlMaybe(proxyinfoValue);
-            } else if (proxyValue) {
-                try {
-                    decoded = decodeProxy(proxyValue);
-                } catch {
-                    decoded = proxyValue;
-                }
-            }
-
-            if (decoded !== null) {
-                inputEl.value = decoded;
-                if (typeof handleInput === 'function') handleInput(decoded);
-            }
-
-            if (readonlyValue === '1' || readonlyValue === 'true') {
-                inputEl.setAttribute('readonly', 'readonly');
-                inputEl.style.background = '#eee';
-                return;
-            }
-
-            inputEl.addEventListener('input', function (e) {
-                const val = e.target.value;
-
-                const b64EncodeUnicode = str => btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g,
-                    (_, p1) => String.fromCharCode(parseInt(p1, 16))));
-
-                const toBase64Url = str => b64EncodeUnicode(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '').trim().replace(/\s+/g, '');
-
-                const encoded = toBase64Url(val);
-
-                // 只写入 proxyinfo 参数，且删除 proxy 参数，避免两个同时存在
-                params.delete('proxy');
-                params.set('proxyinfo', encoded);
-
-                const newUrl = `${window.location.pathname}?${params.toString()}`;
-                history.replaceState(null, '', newUrl);
-
-                if (typeof handleInput === 'function') handleInput(val);
-            });
-        });
-
-        // 返回顶部按钮逻辑
-        (function () {
-            var btn = document.getElementById('back-to-top-btn');
-            var lastShow = false;
-            function updateBtn() {
-                var shouldShow = window.scrollY > 200;
-                if (shouldShow !== lastShow) {
-                    btn.classList.remove(shouldShow ? 'hide' : 'show');
-                    btn.classList.add(shouldShow ? 'show' : 'hide');
-                    lastShow = shouldShow;
-                }
-            }
-            window.addEventListener('scroll', updateBtn);
-            btn.onclick = function () {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            };
-            // 初始化
-            updateBtn();
-        })();
-
-        // 多语言文本补充
-        translations.zh.otherFormatTitle = "其他格式转换";
-        translations.en.otherFormatTitle = "Other Format Conversion";
-        translations.zh.copyFormatBtn = "复制格式";
-        translations.en.copyFormatBtn = "Copy Format";
-
-        function updateUI() {
-            const t = translations[currentLang];
-            document.title = t.pageTitle;
-            document.getElementById('page-title').textContent = t.pageTitle;
-            document.getElementById('input-header').textContent = t.inputHeader;
-            document.getElementById('proxy-input').placeholder = t.placeholder;
-            document.getElementById('help-text').innerHTML = `<i class="fas fa-info-circle"></i> ${t.helpText}`;
-            document.getElementById('error-msg-text').textContent = t.errorMsg;
-            document.getElementById('output-header').textContent = t.outputHeader;
-            document.getElementById('protocol-label').textContent = t.protocolLabel;
-            document.getElementById('host-label').textContent = t.hostLabel;
-            document.getElementById('port-label').textContent = t.portLabel;
-            document.getElementById('username-label').textContent = t.usernameLabel;
-            document.getElementById('password-label').textContent = t.passwordLabel;
-            document.getElementById('copy-result-header').textContent = t.copyResultHeader;
-            document.getElementById('copy-result-btn').textContent = t.copyResultBtn;
-            document.getElementById('curl-header').textContent = t.curlHeader;
-            document.getElementById('copy-curl-btn').textContent = t.copyCurlBtn;
-            document.getElementById('format-title').innerHTML = `<i class="fas fa-lightbulb"></i> ${t.formatTitle}`;
-            document.getElementById('example1').textContent = t.example1;
-            document.getElementById('example2').textContent = t.example2;
-            document.getElementById('example3').textContent = t.example3;
-            document.getElementById('example4').textContent = t.example4;
-            document.getElementById('referral-corner').textContent = t.referralCorner;
-            document.getElementById('referral-title-black').textContent = t.referralTitleBlack;
-            document.getElementById('referral-title-blue').textContent = t.referralTitleBlue;
-            document.getElementById('referral-desc').innerHTML = t.referralDesc;
-            document.getElementById('referral-button-text').textContent = t.referralButton;
-            document.getElementById('curl-tooltip').setAttribute('data-tooltip', t.curlTooltip);
-            document.getElementById('qr-section-title').textContent = t.qrSectionTitle;
-            document.getElementById('shadowrocket-qr-label').textContent = t.shadowrocketQRLabel;
-            document.getElementById('v2ray-qr-label').textContent = t.v2rayQRLabel;
-            document.getElementById('toggle-shadowrocket-text').textContent = qrStates.shadowrocket ? t.hideQRBtn : t.showQRBtn;
-            document.getElementById('toggle-v2ray-text').textContent = qrStates.v2ray ? t.hideQRBtn : t.showQRBtn;
-            document.getElementById('footertext').textContent = t.footertext;
-            document.getElementById('other-format-title').textContent = t.otherFormatTitle;
-
-            // 判断只读状态，决定 input-header 文本
-            const readonlyValue = getQueryParam('readonly');
-            if (readonlyValue === '1' || readonlyValue === 'true') {
-                document.getElementById('input-header').textContent = currentLang === 'zh' ? '您的代理信息' : 'Your Proxy Information';
-            } else {
-                document.getElementById('input-header').textContent = t.inputHeader;
-            }
+        // animateOutputValue 用于输出动画
+        function animateOutputValue(id) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.classList.remove('animated');
+            void el.offsetWidth;
+            el.classList.add('animated');
         }
-
-        function updateLanguageSwitcherActive() {
-            document.getElementById('btn-zh').classList.toggle('active', currentLang === 'zh');
-            document.getElementById('btn-en').classList.toggle('active', currentLang === 'en');
-        }
-
-        // 修改：在切换语言时把 lang 写入 URL（保留其它参数）
-        function setLanguage(lang) {
-            currentLang = lang;
-            // 将 lang 参数写入 URL（保留其它参数）
-            try {
-                setQueryParam('lang', lang);
-            } catch (e) {
-                // 在极少数环境中可能不支持 history.replaceState，忽略错误
-                console.warn('setQueryParam failed', e);
-            }
-            updateLanguageSwitcherActive();
-            updateUI();
-            // 重新解析并刷新转换模块
-            if (typeof handleInput === 'function') handleInput(document.getElementById('proxy-input').value || '');
-            if (typeof updateOtherFormats === 'function') updateOtherFormats();
-        }
-
-        function handleInput(input) {
-            const t = translations[currentLang];
-            const outputs = {
-                protocol: t.unknownProtocol,
-                host: '-',
-                port: '-',
-                username: '-',
-                password: '-'
-            };
-            const errorMsg = document.getElementById('error-msg');
-            input = input.trim();
-            let matched = false;
-            const patterns = [
-                {
-                    regex: /^(.*?):\/\/(.*?):(\d+):(.*?):(.*)$/,
-                    handler: (match) => {
-                        outputs.protocol = match[1];
-                        outputs.host = match[2];
-                        outputs.port = match[3];
-                        outputs.username = match[4];
-                        outputs.password = match[5];
-                    }
-                },
-                {
-                    regex: /^(.*?):(\d+):(.*?):(.*)$/,
-                    handler: (match) => {
-                        outputs.host = match[1];
-                        outputs.port = match[2];
-                        outputs.username = match[3];
-                        outputs.password = match[4];
-                    }
-                },
-                {
-                    regex: /^(.*?):(.*?)@(.*?):(\d+)$/,
-                    handler: (match) => {
-                        outputs.username = match[1];
-                        outputs.password = match[2];
-                        outputs.host = match[3];
-                        outputs.port = match[4];
-                    }
-                },
-                {
-                    regex: /^(.*?):(.*?):(.*?):(\d+)$/,
-                    handler: (match) => {
-                        outputs.username = match[1];
-                        outputs.password = match[2];
-                        outputs.host = match[3];
-                        outputs.port = match[4];
-                    }
-                },
-                {
-                    regex: /^(.*?):(\d+)@(.*?):(.*)$/,
-                    handler: (match) => {
-                        outputs.host = match[1];
-                        outputs.port = match[2];
-                        outputs.username = match[3];
-                        outputs.password = match[4];
-                    }
-                }
-            ];
-            for (let pattern of patterns) {
-                const match = input.match(pattern.regex);
-                if (match) {
-                    pattern.handler(match);
-                    matched = true;
-                    break;
-                }
-            }
-            let curlCommand = '';
-            if (outputs.host !== '-' && outputs.port !== '-') {
-                const protocol = (outputs.protocol !== t.unknownProtocol ? outputs.protocol : 'http').toLowerCase();
-                if (protocol === 'socks5') {
-                    curlCommand = `curl -x "socks5h://${outputs.username !== '-' && outputs.password !== '-' ? `${outputs.username}:${outputs.password}@` : ''}${outputs.host}:${outputs.port}" ip-api.com`;
-                } else if (protocol === 'http' || protocol === 'https') {
-                    const auth = outputs.username !== '-' && outputs.password !== '-' ? `${outputs.username}:${outputs.password}@` : '';
-                    curlCommand = `curl -x "${protocol}://${auth}${outputs.host}:${outputs.port}" ip-api.com`;
-                } else {
-                    curlCommand = t.curlError;
-                }
-            } else {
-                curlCommand = t.curlEmpty;
-            }
-            const formatText = `${t.protocolLine}${outputs.protocol.toLowerCase()}\n${t.hostLine}${outputs.host}\n${t.portLine}${outputs.port}\n${t.usernameLine}${outputs.username}\n${t.passwordLine}${outputs.password}`;
-            document.getElementById('protocol').textContent = outputs.protocol.toLowerCase();
-            document.getElementById('host').textContent = outputs.host;
-            document.getElementById('port').textContent = outputs.port;
-            document.getElementById('username').textContent = outputs.username;
-            document.getElementById('password').textContent = outputs.password;
-            document.getElementById('formatted-text').textContent = formatText;
-            document.getElementById('curl-command').textContent = curlCommand;
-            animateOutputValue('protocol');
-            animateOutputValue('host');
-            animateOutputValue('port');
-            animateOutputValue('username');
-            animateOutputValue('password');
-            if (input.length > 0 && !matched) {
-                errorMsg.style.display = 'flex';
-                document.querySelectorAll('.qr-output-value').forEach(el => {
-                    el.style.color = '#ff4444';
-                });
-            } else {
-                errorMsg.style.display = 'none';
-                document.querySelectorAll('.qr-output-value').forEach(el => {
-                    el.style.color = '#333';
-                });
-            }
-            generateQR();
-            updateOtherFormats(); // 保证格式转换模块正常显示
-        }
-
-        function generateQR() {
-            let input = document.getElementById("proxy-input").value.trim();
-            if (!input) {
-                document.getElementById("qr-section").style.display = "none";
-                return;
-            }
-            let protocolInput = "";
-            let finalProtocol = "";
-            if (input.startsWith("socks5://")) {
-                protocolInput = "socks5://";
-                finalProtocol = "socks://";
-            } else if (input.startsWith("http://")) {
-                protocolInput = "http://";
-                finalProtocol = "http://";
-            } else {
-                document.getElementById("qr-section").style.display = "none";
-                return;
-            }
-            input = input.substring(protocolInput.length);
-            let parts = input.split(":");
-            if (parts.length !== 4) {
-                document.getElementById("qr-section").style.display = "none";
-                return;
-            }
-            let host = parts[0],
-                port = parts[1],
-                username = parts[2],
-                password = parts[3];
-            let shadowrocketStr = username + ":" + password + "@" + host + ":" + port;
-            let shadowrocketEncoded = btoa(shadowrocketStr);
-            let shadowrocketQR = finalProtocol + shadowrocketEncoded;
-            let v2rayStr = username + ":" + password;
-            let v2rayEncoded = btoa(v2rayStr);
-            let v2rayQR = finalProtocol + v2rayEncoded + "@" + host + ":" + port;
-            document.getElementById("qr-section").style.display = "block";
-            document.getElementById("qrcode-shadowrocket").innerHTML = "";
-            document.getElementById("qrcode-v2ray").innerHTML = "";
-            document.getElementById("text-shadowrocket").innerText = shadowrocketQR;
-            document.getElementById("text-v2ray").innerText = v2rayQR;
-            new QRCode(document.getElementById("qrcode-shadowrocket"), {
-                text: shadowrocketQR,
-                width: 210,
-                height: 210,
-                correctLevel: QRCode.CorrectLevel.Q
-            });
-            new QRCode(document.getElementById("qrcode-v2ray"), {
-                text: v2rayQR,
-                width: 210,
-                height: 210,
-                correctLevel: QRCode.CorrectLevel.Q
-            });
-            setTimeout(function () {
-                let qrImages1 = document.querySelectorAll("#qrcode-shadowrocket img");
-                qrImages1.forEach(function (img) {
-                    img.style.display = "block";
-                    img.style.margin = "0 auto";
-                    img.style.padding = "10px";
-                    img.style.transition = "box-shadow 0.4s";
-                    img.onmouseenter = () => img.style.boxShadow = "0 6px 24px #33333333";
-                    img.onmouseleave = () => img.style.boxShadow = "";
-                });
-                let qrImages2 = document.querySelectorAll("#qrcode-v2ray img");
-                qrImages2.forEach(function (img) {
-                    img.style.display = "block";
-                    img.style.margin = "0 auto";
-                    img.style.padding = "10px";
-                    img.style.transition = "box-shadow 0.4s";
-                    img.onmouseenter = () => img.style.boxShadow = "0 6px 24px #33333333";
-                    img.onmouseleave = () => img.style.boxShadow = "";
-                });
-            }, 10);
-
-            document.getElementById("shadowrocket-qr-outer").classList.toggle('blurred', !qrStates.shadowrocket);
-            document.getElementById("v2ray-qr-outer").classList.toggle('blurred', !qrStates.v2ray);
-        }
-
-        function toggleQR(type) {
-            qrStates[type] = !qrStates[type];
-            const t = translations[currentLang];
-            const outer = document.getElementById(type + '-qr-outer');
-            const textElem = document.getElementById('toggle-' + type + '-text');
-            const iconElem = document.getElementById('toggle-' + type + '-icon');
-            if (!qrStates[type]) {
-                outer.classList.add('blurred');
-                textElem.textContent = t.showQRBtn;
-                if (iconElem) iconElem.className = "fas fa-eye";
-            } else {
-                outer.classList.remove('blurred');
-                textElem.textContent = t.hideQRBtn;
-                if (iconElem) iconElem.className = "fas fa-eye-slash";
-            }
-        }
-
-        function handleCopy(btn, text) {
-            const t = translations[currentLang];
-            const originalHTML = btn.innerHTML;
-            navigator.clipboard.writeText(text).then(() => {
-                btn.innerHTML = `<i class="fas fa-check"></i> ${t.copiedConfirmation}`;
-                btn.classList.add('copied');
-                setTimeout(() => {
-                    btn.innerHTML = originalHTML;
-                    btn.classList.remove('copied');
-                }, 2000);
-            }).catch(err => {
-                console.error('复制失败:', err);
-            });
-        }
-
-        function copyResult(event) {
-            const btn = event.currentTarget;
-            const text = document.getElementById('formatted-text').textContent;
-            handleCopy(btn, text);
-        }
-
-        function copyCurl(event) {
-            const btn = event.currentTarget;
-            const text = document.getElementById('curl-command').textContent;
-            handleCopy(btn, text);
-        }
-
-        function copyOutputValue(el) {
-            const t = translations[currentLang];
-            const text = el.textContent;
-            if (!text || text === '-') return;
-            const original = el.textContent;
-            navigator.clipboard.writeText(text).then(() => {
-                el.textContent = t.copiedConfirmation;
-                el.style.color = "#1976D2";
-                el.style.fontWeight = "bold";
-                setTimeout(() => {
-                    el.textContent = original;
-                    el.style.color = "";
-                    el.style.fontWeight = "";
-                }, 2000);
-            });
-        }
-
-        function showCopyToast(msg) {
-            var stack = document.getElementById('copy-toast-stack');
-            var toast = document.createElement('div');
-            toast.className = 'copy-toast-item';
-            toast.textContent = msg;
-            stack.appendChild(toast);
-            // 使用 requestAnimationFrame 保证动画触发
-            requestAnimationFrame(function () {
-                toast.classList.add('show');
-            });
-            setTimeout(function () {
-                toast.classList.remove('show');
-                toast.classList.add('hide');
-                // 动画结束后移除元素
-                setTimeout(function () {
-                    toast.style.marginBottom = '0';
-                    setTimeout(function () {
-                        if (toast.parentNode === stack) stack.removeChild(toast);
-                    }, 10);
-                }, 450);
-            }, 2000);
-        }
-
-        function copyOutputItem(item) {
-            // 只复制 value 内容，不包含 label
-            var value = item.querySelector('.output-value');
-            var t = translations[currentLang];
-            if (!value) return;
-            var text = value.textContent;
-            if (!text || !text.trim() || text === '-') return;
-            navigator.clipboard.writeText(text).then(function () {
-                showCopyToast(t.copiedConfirmation);
-            });
-        }
-
-        // 其他格式转换功能
-        function updateOtherFormats() {
-            const t = translations[currentLang];
-            const input = document.getElementById('proxy-input').value.trim();
-            const sectionEl = document.getElementById('other-format-section');
-            const titleEl = document.getElementById('other-format-title');
-            const listEl = document.getElementById('other-format-list');
-            listEl.innerHTML = '';
-            sectionEl.style.display = 'none';
-            titleEl.style.display = 'none';
-
-            if (!input) return;
-
-            let outputs = {
-                protocol: t.unknownProtocol,
-                host: '-',
-                port: '-',
-                username: '-',
-                password: '-'
-            };
-            const patterns = [
-                {
-                    regex: /^(.*?):\/\/(.*?):(\d+):(.*?):(.*)$/,
-                    handler: (match) => {
-                        outputs.protocol = match[1];
-                        outputs.host = match[2];
-                        outputs.port = match[3];
-                        outputs.username = match[4];
-                        outputs.password = match[5];
-                    }
-                },
-                {
-                    regex: /^(.*?):(\d+):(.*?):(.*)$/,
-                    handler: (match) => {
-                        outputs.host = match[1];
-                        outputs.port = match[2];
-                        outputs.username = match[3];
-                        outputs.password = match[4];
-                    }
-                },
-                {
-                    regex: /^(.*?):(.*?)@(.*?):(\d+)$/,
-                    handler: (match) => {
-                        outputs.username = match[1];
-                        outputs.password = match[2];
-                        outputs.host = match[3];
-                        outputs.port = match[4];
-                    }
-                },
-                {
-                    regex: /^(.*?):(.*?):(.*?):(\d+)$/,
-                    handler: (match) => {
-                        outputs.username = match[1];
-                        outputs.password = match[2];
-                        outputs.host = match[3];
-                        outputs.port = match[4];
-                    }
-                },
-                {
-                    regex: /^(.*?):(\d+)@(.*?):(.*)$/,
-                    handler: (match) => {
-                        outputs.host = match[1];
-                        outputs.port = match[2];
-                        outputs.username = match[3];
-                        outputs.password = match[4];
-                    }
-                }
-            ];
-            let matched = false;
-            for (let pattern of patterns) {
-                const match = input.match(pattern.regex);
-                if (match) {
-                    pattern.handler(match);
-                    matched = true;
-                    break;
-                }
-            }
-            if (!matched) return;
-
-            sectionEl.style.display = '';
-            titleEl.style.display = '';
-
-            // 格式标签多语言
-            const formatLabels = currentLang === 'zh'
-                ? [
-                    { label: "用户名:密码@主机:端口", value: `${outputs.username}:${outputs.password}@${outputs.host}:${outputs.port}` },
-                    { label: "协议://主机:端口:用户名:密码", value: `${outputs.protocol}://${outputs.host}:${outputs.port}:${outputs.username}:${outputs.password}` },
-                    { label: "主机:端口@用户名:密码", value: `${outputs.host}:${outputs.port}@${outputs.username}:${outputs.password}` },
-                    { label: "主机:端口:用户名:密码", value: `${outputs.host}:${outputs.port}:${outputs.username}:${outputs.password}` }
-                ]
-                : [
-                    { label: "user:pass@host:port", value: `${outputs.username}:${outputs.password}@${outputs.host}:${outputs.port}` },
-                    { label: "protocol://host:port:user:pass", value: `${outputs.protocol}://${outputs.host}:${outputs.port}:${outputs.username}:${outputs.password}` },
-                    { label: "host:port@user:pass", value: `${outputs.host}:${outputs.port}@${outputs.username}:${outputs.password}` },
-                    { label: "host:port:user:pass", value: `${outputs.host}:${outputs.port}:${outputs.username}:${outputs.password}` }
-                ];
-
-            // 下拉选择美化
-            const selectId = 'other-format-select';
-            let select = document.getElementById(selectId);
-            if (select) select.remove(); // 先移除旧的
-            select = document.createElement('select');
-            select.id = selectId;
-            select.style.fontSize = '1em';
-            select.style.padding = '7px 18px 7px 14px';
-            select.style.borderRadius = '7px';
-            select.style.border = '1.5px solid #e3f2fd';
-            select.style.background = '#f8f9fa';
-            select.style.color = '#1976D2';
-            select.style.fontWeight = '500';
-            select.style.outline = 'none';
-            select.style.cursor = 'pointer';
-            select.style.boxShadow = '0 1px 4px rgba(33,150,243,0.08)';
-            select.style.marginLeft = '16px';
-            select.style.marginBottom = '0';
-            select.style.height = '36px';
-            select.style.verticalAlign = 'middle';
-            select.style.transition = 'border-color 0.2s, box-shadow 0.2s';
-            select.onfocus = function () {
-                select.style.borderColor = '#2196F3';
-                select.style.boxShadow = '0 2px 8px #2196f322';
-            };
-            select.onblur = function () {
-                select.style.borderColor = '#e3f2fd';
-                select.style.boxShadow = '0 1px 4px rgba(33,150,243,0.08)';
-            };
-            formatLabels.forEach((f, idx) => {
-                const option = document.createElement('option');
-                option.value = idx;
-                option.textContent = f.label;
-                select.appendChild(option);
-            });
-
-            // 标题右侧插入下拉框，优化间距
-            titleEl.parentNode.style.display = 'flex';
-            titleEl.parentNode.style.alignItems = 'center';
-            titleEl.style.marginRight = '0';
-            titleEl.style.letterSpacing = '0.5px';
-            titleEl.style.marginBottom = '0';
-            if (!titleEl.nextSibling || titleEl.nextSibling.id !== selectId) {
-                titleEl.parentNode.insertBefore(select, titleEl.nextSibling);
-            }
-
-            // 输出框样式
-            const formattedBox = document.createElement('div');
-            formattedBox.className = 'formatted-box';
-            formattedBox.style.marginTop = '0';
-            formattedBox.innerHTML = `
-                <div class="formatted-content" id="other-format-content" style="padding-bottom:44px;">
-                    <div id="other-format-value" style="font-size:1.05em;word-break:break-all;">${formatLabels[select.selectedIndex].value}</div>
-                    <button class="copy-btn" id="other-format-copy-btn">
-                        <i class="fas fa-copy"></i>
-                        <span>${t.copyFormatBtn}</span>
-                    </button>
-                </div>
-            `;
-
-            // 事件绑定
-            select.onchange = function () {
-                const idx = select.selectedIndex;
-                document.getElementById('other-format-value').textContent = formatLabels[idx].value;
-            };
-            formattedBox.querySelector('#other-format-copy-btn').onclick = function (e) {
-                const idx = select.selectedIndex;
-                handleCopy(e.currentTarget, formatLabels[idx].value);
-            };
-            formattedBox.querySelector('#other-format-copy-btn').onmouseenter = function () {
-                this.style.background = "#1976D2";
-            };
-            formattedBox.querySelector('#other-format-copy-btn').onmouseleave = function () {
-                this.style.background = "#2196F3";
-            };
-            formattedBox.querySelector('#other-format-copy-btn').onmousedown = function () {
-                this.style.background = "#1565C0";
-            };
-            formattedBox.querySelector('#other-format-copy-btn').onmouseup = function () {
-                this.style.background = "#1976D2";
-            };
-
-            listEl.appendChild(formattedBox);
-        }
-
-        // 保证切换语言时下拉框也更新
-        function setLanguage(lang) {
-            currentLang = lang;
-            try {
-                setQueryParam('lang', lang);
-            } catch (e) { console.warn('setQueryParam failed', e); }
-            updateLanguageSwitcherActive();
-            updateUI();
-            handleInput(document.getElementById('proxy-input').value);
-            updateOtherFormats();
-        }
-
-        window.onload = function () {
-            updateLanguageSwitcherActive();
-            updateUI();
-            handleInput(document.getElementById('proxy-input').value);
-            updateOtherFormats(); // 页面初始化时也刷新
-        };
-        // 读取 URL 参数
-        function getQueryParam(name) {
-            const params = new URLSearchParams(window.location.search);
-            return params.get(name);
-        }
-
-        // 设置 URL 参数（不刷新页面）
-        function setQueryParam(name, value) {
-            const url = new URL(window.location);
-            url.searchParams.set(name, value);
-            window.history.replaceState({}, '', url);
-        }
-
-        // 编码代理信息
-        function encodeProxy(str) {
-            return encodeURIComponent(str || '');
-        }
-
-        // 解码代理信息
-        function decodeProxy(str) {
-            try { return decodeURIComponent(str || ''); } catch (e) { return str || ''; }
-        }
-
-        window.addEventListener('DOMContentLoaded', function () {
-            const params = new URLSearchParams(window.location.search);
-            const proxyinfoValue = params.get('proxyinfo');
-            const proxyValue = params.get('proxy');
-            const readonlyValue = params.get('readonly');
-            const inputEl = document.getElementById('proxy-input');
-
-            function b64DecodeUnicode(b64) {
-                return decodeURIComponent(Array.prototype.map.call(atob(b64), c =>
-                    '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
-                ).join(''));
-            }
-
-            function fromBase64UrlMaybe(s) {
-                if (!s) return null;
-                try {
-                    let cleaned = s.trim().replace(/\s+/g, '');
-                    try { cleaned = decodeURIComponent(cleaned); } catch (_) { }
-                    let b64 = cleaned.replace(/-/g, '+').replace(/_/g, '/');
-                    while (b64.length % 4) b64 += '=';
-                    return b64DecodeUnicode(b64);
-                } catch {
-                    return null;
-                }
-            }
-
-            let decoded = null;
-            if (proxyinfoValue) {
-                decoded = fromBase64UrlMaybe(proxyinfoValue);
-            } else if (proxyValue) {
-                try {
-                    decoded = decodeProxy(proxyValue);
-                } catch {
-                    decoded = proxyValue;
-                }
-            }
-
-            if (decoded !== null) {
-                inputEl.value = decoded;
-                if (typeof handleInput === 'function') handleInput(decoded);
-            }
-
-            if (readonlyValue === '1' || readonlyValue === 'true') {
-                inputEl.setAttribute('readonly', 'readonly');
-                inputEl.style.background = '#eee';
-                return;
-            }
-
-            inputEl.addEventListener('input', function (e) {
-                const val = e.target.value;
-
-                const b64EncodeUnicode = str => btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g,
-                    (_, p1) => String.fromCharCode(parseInt(p1, 16))));
-
-                const toBase64Url = str => b64EncodeUnicode(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '').trim().replace(/\s+/g, '');
-
-                const encoded = toBase64Url(val);
-
-                // 只写入 proxyinfo 参数，且删除 proxy 参数，避免两个同时存在
-                params.delete('proxy');
-                params.set('proxyinfo', encoded);
-
-                const newUrl = `${window.location.pathname}?${params.toString()}`;
-                history.replaceState(null, '', newUrl);
-
-                if (typeof handleInput === 'function') handleInput(val);
-            });
-        });
-
-        // 返回顶部按钮逻辑
-        (function () {
-            var btn = document.getElementById('back-to-top-btn');
-            var lastShow = false;
-            function updateBtn() {
-                var shouldShow = window.scrollY > 200;
-                if (shouldShow !== lastShow) {
-                    btn.classList.remove(shouldShow ? 'hide' : 'show');
-                    btn.classList.add(shouldShow ? 'show' : 'hide');
-                    lastShow = shouldShow;
-                }
-            }
-            window.addEventListener('scroll', updateBtn);
-            btn.onclick = function () {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            };
-            // 初始化
-            updateBtn();
-        })();
     </script>
 </body>
 
